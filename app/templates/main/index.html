@@ -1,14 +1,23 @@
 {% extends "base.html" %}
 
+{% block title %}
+Main
+{% endblock %}
+
 {% block content %}
+{% include "main/nav.html" %}
 <section class="section">
   <div class="container">
     <div class="columns">
-      <div class="column">
+      <div class="column box is-one-third is-offset-4">
         <h1 class="title">เมนูหลัก</h1>
-        <ul>
-          <li>ลงทะเบียนเข้าร่วมกิจกรรม</li>
-        </ul>
+        <div class="menu">
+          <ul class="menu-list">
+            <li>
+              <a>ลงทะเบียนเข้าร่วมกิจกรรม</a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
