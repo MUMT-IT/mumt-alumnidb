@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Upcoming Events{% endblock %}
+
+{% block content %}
+{% include "event/nav.html" %}
+<section class="section">
+  <div class="container">
+    <div class="columns">
+      <div class="column">
+        <table class="table is-fullwidth is-striped is-bordered">
+          <thead>
+          <th>กิจกรรม</th>
+          <th>สถานที่</th>
+          <th>วันที่</th>
+          <th>วันที่เปิดลงทะเบียน</th>
+          <th></th>
+          </thead>
+          <tbody>
+          {% for event in events %}
+          <tr>
+            <td>{{event.name}}</td>
+            <td>{{event.location}}</td>
+            <td>{{event.start_datetime|localdatetime}} - {{event.end_datetime|localdatetime}}</td>
+            <td>{{event.register_start_datetime|localdatetime or 'ไม่กำหนด'}} - {{event.register_end_datetime|localdatetime or 'ไม่กำหนด'}}</td>
+            <td>
+              <a href="{{url_for('event.register_event', event_id=event.id)}}" class="button is-small is-rounded is-link">ซื้อบัตร/ลงทะเบียน</a>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
