@@ -1,4 +1,5 @@
 import os
+from pytz import timezone
 
 from flask import Flask
 from flask_admin.contrib.sqla import ModelView
@@ -27,7 +28,21 @@ from app.event import event_blueprint
 
 app.register_blueprint(event_blueprint)
 
-from app.event.models import Event
+from app.event.models import Event, EventParticipant
 
 admin.add_view(ModelView(Event, db.session, category='Event', endpoint='event-admin'))
+admin.add_view(ModelView(EventParticipant, db.session, category='Event'))
 
+
+@app.template_filter("localdatetime")
+def local_datetime(dt, dateonly=False):
+    bangkok = timezone('Asia/Bangkok')
+    datetime_format = '%d/%m/%y' if dateonly else '%d/%m/%Y %X'
+    if dt:
+        if dateonly:
+            return dt.strftime(datetime_format)
+        else:
+            if dt.tzinfo:
+                return dt.astimezone(bangkok).strftime(datetime_format)
+    else:
+        return None

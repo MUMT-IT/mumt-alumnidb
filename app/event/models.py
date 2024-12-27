@@ -14,6 +14,11 @@ class Event(db.Model):
     max_participatants = db.Column(db.Integer(), nullable=False)
     register_start_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันเปิดลงทะเบียน'})
     register_end_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันปิดลงทะเบียน'})
+    ticket_price = db.Column(db.Numeric())
+
+    @property
+    def detail(self):
+        return f'{self.start_datetime} - {self.end_datetime} สถานที่ {self.location}'
 
 
 class EventParticipant(db.Model):
@@ -21,10 +26,24 @@ class EventParticipant(db.Model):
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     event_id = db.Column(db.Integer(), db.ForeignKey('events.id'))
     event = db.relationship('Event', backref=db.backref('participants', lazy='dynamic', cascade='all, delete-orphan'))
-    title = db.Column(db.String(), nullable=True)
-    firstname = db.Column(db.String(), nullable=False)
-    lastname = db.Column(db.String(), nullable=False)
-    telephone = db.Column(db.String())
+    title = db.Column(db.String(), nullable=True, info={'label': 'คำนำหน้า'})
+    firstname = db.Column(db.String(), nullable=False, info={'label': 'ชื่อจริง'})
+    lastname = db.Column(db.String(), nullable=False, info={'label': 'นามสกุล'})
+    telephone = db.Column(db.String(), info={'label': 'หมายเลขโทรศัพท์'})
+    ticket_id = db.Column(db.Integer(), db.ForeignKey('event_tickets.id'))
+    ticket = db.relationship('EventTicket', backref=db.backref('owner', uselist=False), foreign_keys=[ticket_id])
+    line_id = db.Column(db.String())
+
+    def __str__(self):
+        return f'{self.title or ""}{self.firstname} {self.lastname}'
+
+    @property
+    def total_balance(self):
+        return len([ticket for ticket in self.owned_tickets]) * self.event.ticket_price
+
+    @property
+    def total_amount_due(self):
+        return self.total_balance - (len([ticket for ticket in self.owned_tickets if ticket.payment_datetime]) * self.event.ticket_price)
 
 
 class EventTicket(db.Model):
@@ -33,4 +52,26 @@ class EventTicket(db.Model):
     ticket_number = db.Column(db.String())
     event_id = db.Column(db.Integer(), db.ForeignKey('events.id'))
     event = db.relationship('Event', backref=db.backref('tickets', lazy='dynamic', cascade='all, delete-orphan'))
+    participant_id = db.Column(db.Integer(), db.ForeignKey('event_participants.id'))
+    participant = db.relationship('EventParticipant', foreign_keys=[participant_id],
+                                  backref=db.backref('owned_tickets', lazy='dynamic', cascade='all, delete-orphan'))
+    create_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่จอง'})
+    payment_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่จ่ายเงิน'})
+    cancel_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่ยกเลิก'})
 
+    def generate_ticket_number(self, event):
+        total_ticket = event.tickets.count()
+        ticket_number = total_ticket + 1
+        self.ticket_number = f'{event.id}{ticket_number:04d}'
+
+
+class EventTicketPayment(db.Model):
+    __tablename__ = 'event_ticket_payments'
+    id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
+    participant_id = db.Column(db.Integer(), db.ForeignKey('event_participants.id'))
+    participant = db.relationship('EventParticipant', foreign_keys=[participant_id],
+                                  backref=db.backref('payments', lazy='dynamic', cascade='all, delete-orphan'))
+    create_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่จอง'})
+    filename = db.Column(db.String())
+    key = db.Column(db.Text())
+    amount = db.Column(db.Numeric(), info={'label': 'จำนวนเงิน'})

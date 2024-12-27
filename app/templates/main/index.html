@@ -10,11 +10,14 @@ Main
   <div class="container">
     <div class="columns">
       <div class="column box is-one-third is-offset-4">
+        <div id="lineProfile">
+          {{profile}}
+        </div>
         <h1 class="title">เมนูหลัก</h1>
         <div class="menu">
           <ul class="menu-list">
             <li>
-              <a>ลงทะเบียนเข้าร่วมกิจกรรม</a>
+              <a href="{{url_for('event.list_upcoming_events')}}">ลงทะเบียนเข้าร่วมกิจกรรม</a>
             </li>
           </ul>
         </div>
@@ -22,4 +25,13 @@ Main
     </div>
   </div>
 </section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+  liff.init({
+    liffId: "2006693395-RZwO4OEj", // Use own liffId
+    withLoginOnExternalBrowser: true,
+  })
+</script>
 {% endblock %}

@@ -1,10 +1,49 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+<div class="modal is-active animate__animated" id="ticket-claim-modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Ticket Claim Modal</p>
+            <button type="button" id="cancelButton" class="delete" aria-label="close"></button>
+        </header>
+        <form hx-post="{{ url_for('event.claim_ticket', event_id=event_id, ticket_id=ticket_id) }}">
+            {{ form.hidden_tag() }}
+            <section class="modal-card-body">
+                <div class="field">
+                    <label class="label">{{ form.telephone.label }}</label>
+                    <div class="control">
+                        {{ form.telephone(class="input is-danger") }}
+                        <p class="help">กรอกหมายเลขโทรศัพท์เพื่อรับ OTP</p>
+                    </div>
+                </div>
+                <div id="otp-btn">
+                    <button class="button" hx-get="{{url_for('event.get_otp')}}"
+                            hx-sync="closest form:drop"
+                            hx-target="#otp-btn"
+                            hx-swap="outerHTML"
+                            hx-indicator="this"
+                            hx-include="[name='telephone']">
+                        ขอรับ OTP
+                    </button>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <div class="buttons">
+                    <button class="button is-light" id="cancel-btn">Cancel</button>
+                    <button class="button is-success" id="save-btn">Save</button>
+                </div>
+            </footer>
+        </form>
+    </div>
+</div>
+<script>
+    window.document.getElementById("cancel-btn").addEventListener("click", function (event) {
+        event.preventDefault()
+        htmx.removeClass(htmx.find('#ticket-claim-modal'), 'is-active')
+    })
+    window.document.getElementById("cancelButton").addEventListener("click", function () {
+        htmx.removeClass(htmx.find('#ticket-claim-modal'), 'is-active')
+    })
+    window.addEventListener('closeModal', (evt) => {
+        htmx.removeClass(htmx.find('#ticket-claim-modal'), 'is-active')
+    })
+</script>

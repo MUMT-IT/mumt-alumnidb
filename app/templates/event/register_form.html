@@ -1,10 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Event Participant Registration{% endblock %}
+
+{% block content %}
+{% include "event/nav.html" %}
+<section class="section">
+  <div class="container">
+    <div class="columns">
+      <div class="column">
+        <h1 class="title has-text-centered">
+          {{event.name}}
+        </h1>
+        <h1 class="subtitle has-text-centered">
+          {{event.detail}}
+        </h1>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column">
+        <h1 class="title is-size-4 has-text-centered">กรอกข้อมูลจองบัตรเข้าร่วมกิจกรรม</h1>
+        <form method="post">
+        {{form.hidden_tag()}}
+        <input type="text" name="line_id" value="" required/>
+          <div class="field">
+            <label class="label">{{form.title.label}}</label>
+            <div class="control">
+              {{form.title(class="input")}}
+            </div>
+          </div>
+        <div class="field">
+          <label class="label">{{form.firstname.label}}</label>
+          <div class="control">
+            {{form.firstname(class="input is-danger")}}
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">{{form.lastname.label}}</label>
+          <div class="control">
+            {{form.lastname(class="input is-danger")}}
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">{{form.telephone.label}}</label>
+          <div class="control">
+            {{form.telephone(class="input")}}
+            <p class="help is-info">สำหรับติดต่อในกรณีจำเป็น</p>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">{{form.number.label}}ที่ต้องการจอง</label>
+          <div class="control">
+            {{form.number(class="input")}}
+          </div>
+        </div>
+        <div class="field is-grouped is-centered">
+          <div class="control">
+            <a class="button">Cancel</a>
+          </div>
+          <div class="control">
+            <input id="submit-btn" type="submit" value="Submit" class="button is-success"/>
+          </div>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+<script>
+  htmx.on('#submit-btn', 'submit', function () {
+    htmx.addClass('#submit-btn', 'is-loading')
+  })
+</script>
+<script>
+  liff.init({
+    liffId: "2006693395-RZwO4OEj", // Use own liffId
+    withLoginOnExternalBrowser: true,
+  }).then(function () {
+    let profile = liff.getDecodedIDToken();
+    $('input[name="line_id"]').val(profile.sub)
+  })
+</script>
+{% endblock %}
