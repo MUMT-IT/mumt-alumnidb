@@ -20,6 +20,13 @@ class Event(db.Model):
     def detail(self):
         return f'{self.start_datetime} - {self.end_datetime} สถานที่ {self.location}'
 
+    @property
+    def time(self):
+        return f'{self.start_datetime.strftime("%d/%m/%Y %H:%M")} - {self.end_datetime.strftime("%d/%m/%Y %H:%M")}'
+
+    def __str__(self):
+        return f'{self.name}: {self.detail}'
+
 
 class EventParticipant(db.Model):
     __tablename__ = 'event_participants'
@@ -31,7 +38,7 @@ class EventParticipant(db.Model):
     lastname = db.Column(db.String(), nullable=False, info={'label': 'นามสกุล'})
     telephone = db.Column(db.String(), info={'label': 'หมายเลขโทรศัพท์'})
     ticket_id = db.Column(db.Integer(), db.ForeignKey('event_tickets.id'))
-    ticket = db.relationship('EventTicket', backref=db.backref('owner', uselist=False), foreign_keys=[ticket_id])
+    ticket = db.relationship('EventTicket', backref=db.backref('holder', uselist=False), foreign_keys=[ticket_id])
     line_id = db.Column(db.String())
 
     def __str__(self):

@@ -33,6 +33,10 @@ from app.event.models import Event, EventParticipant
 admin.add_view(ModelView(Event, db.session, category='Event', endpoint='event-admin'))
 admin.add_view(ModelView(EventParticipant, db.session, category='Event'))
 
+from app.line_api import line_api_blueprint
+
+app.register_blueprint(line_api_blueprint)
+
 
 @app.template_filter("localdatetime")
 def local_datetime(dt, dateonly=False):
