@@ -1,4 +1,5 @@
 import os
+import random
 from datetime import datetime
 
 from flask import request, abort
@@ -170,7 +171,7 @@ def handle_message(event):
         event_id = event.message.text.split(':')[-1]
         participant = EventParticipant.query.filter_by(line_id=line_id).first()
         tickets = []
-        for t in participant.owned_tickets.filter_by(event_id=event_id):
+        for t in participant.purchased_tickets.filter_by(event_id=event_id):
             ticket = {
                 "type": "bubble",
                 "hero": {
@@ -230,6 +231,62 @@ def handle_message(event):
                                     "contents": [
                                         {
                                             "type": "text",
+                                            "text": "Purchased",
+                                            "wrap": True,
+                                            "color": "#8c8c8c",
+                                            "size": "md",
+                                            "flex": 2
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{t.create_datetime}",
+                                            "wrap": True,
+                                            "size": "md",
+                                            "flex": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "spacing": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "Paid",
+                                            "wrap": True,
+                                            "color": "#8c8c8c",
+                                            "size": "md",
+                                            "flex": 2
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{t.payment_datetime or 'pending'}",
+                                            "wrap": True,
+                                            "size": "md",
+                                            "flex": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "spacing": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "text",
                                             "text": "Holder",
                                             "wrap": True,
                                             "color": "#8c8c8c",
@@ -263,7 +320,7 @@ def handle_message(event):
                             "action": {
                                 "type": "message",
                                 "label": "เคลมบัตร",
-                                "text": f"claim ticket:{t.id}"
+                                "text": f"claim ticket:{t.ticket_number}"
                             }
                         },
                         {
@@ -283,11 +340,11 @@ def handle_message(event):
         message = FlexMessage(alt_text=f'Purchased Tickets',
                               contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
     elif event.message.text.startswith('claim ticket'):
-        ticket_id = event.message.text.split(':')[-1]
-        ticket = EventTicket.query.get(int(ticket_id))
+        ticket_number = event.message.text.split(':')[-1]
+        ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()
         bubble = {
             'type': 'text',
-            'text': f'คุณต้องการระบุว่าเป็นเจ้าของบัตรหมายเลข {ticket.ticket_number} ใช่หรือไม่ บัตรหนึ่งใบสามารถมีเจ้าของได้เพียงคนเดียวเท่านั้น',
+            'text': f'คุณต้องการระบุว่าเป็นเจ้าของบัตรหมายเลข {ticket.ticket_number} ใช่หรือไม่ บัตรหนึ่งใบสามารถมีเจ้าของได้เพียงคนเดียวที่จะใช้เช็คอินเข้างาน',
             'quickReply': {
                 'items': [
                     {
@@ -314,15 +371,54 @@ def handle_message(event):
         ticket_number = event.message.text.split(' ')[-1]
         ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()
         if ticket:
-            ticket.participant.ticket_id = None
-            new_owner = EventParticipant.query.filter_by(line_id=event.source.user_id).first()
-            new_owner.ticket_id = ticket.id
-            db.session.add(ticket.participant)
-            db.session.add(new_owner)
-            db.session.commit()
-            message = TextMessage(text='All set!')
+            holder = EventParticipant.query.filter_by(line_id=event.source.user_id,
+                                                      event=ticket.event).first()
+            if holder.holding_ticket and holder.holding_ticket == ticket:
+                if holder.holding_ticket == ticket:
+                    message = TextMessage(text=f'คุณได้คือครองบัตรนี้อยู่แล้ว ')
+            else:
+                if holder.holding_ticket:
+                    holding_message = f'คุณได้ปล่อยบัตรหมายเลข {holder.holding_ticket.ticket_number} แล้ว '
+                else:
+                    holding_message = ''
+                ticket.holder = holder
+                db.session.add(ticket)
+                db.session.commit()
+                msg = 'เรียบร้อย! ' + holding_message + f'บัตรที่คุณถือตอนนี้คือหมายเลข {ticket.ticket_number} คุณต้องการดูรายการบัตรทั้งหมดหรือไม่'
+                bubble = {
+                    'type': 'text',
+                    'text': msg,
+                    'quickReply': {
+                        'items': [
+                            {
+                                'type': 'action',
+                                'action': {
+                                    'type': 'message',
+                                    'label': f'Yes',
+                                    'text': f'tickets:{ticket.event_id}'
+                                }
+                            },
+                            {
+                                'type': 'action',
+                                'action': {
+                                    'type': 'message',
+                                    'label': 'No.',
+                                    'text': 'No'
+                                }
+                            },
+                        ]
+                    }
+                }
+                message = TextMessage.from_dict(bubble)
     else:
-        message = TextMessage(text=event.message.text)
+        fine_responses = ['ได้เลยครับ', 'Ok.', 'ไม่มีปัญหา', 'ยินดีรับใช้ครับ']
+        error_responses = [
+            'Oops! Sorry. I am just a simple chatbot. Try again.',
+            'ขออภัย ผมไม่สามารถทำตามคำสั่งได้',
+            'ผมไม่เข้าใจครับ กรุณาลองอีกครั้ง',
+            'ผมเป็นบอทที่ทำตามคำสั่งเฉพาะเท่านั้น กรุณาลองใหม่นะครับ'
+        ]
+        message = TextMessage(text=random.choice(fine_responses) if event.message.text == 'No' else random.choice(error_responses))
 
     with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)

@@ -37,8 +37,6 @@ class EventParticipant(db.Model):
     firstname = db.Column(db.String(), nullable=False, info={'label': 'ชื่อจริง'})
     lastname = db.Column(db.String(), nullable=False, info={'label': 'นามสกุล'})
     telephone = db.Column(db.String(), info={'label': 'หมายเลขโทรศัพท์'})
-    ticket_id = db.Column(db.Integer(), db.ForeignKey('event_tickets.id'))
-    ticket = db.relationship('EventTicket', backref=db.backref('holder', uselist=False), foreign_keys=[ticket_id])
     line_id = db.Column(db.String())
 
     def __str__(self):
@@ -61,15 +59,20 @@ class EventTicket(db.Model):
     event = db.relationship('Event', backref=db.backref('tickets', lazy='dynamic', cascade='all, delete-orphan'))
     participant_id = db.Column(db.Integer(), db.ForeignKey('event_participants.id'))
     participant = db.relationship('EventParticipant', foreign_keys=[participant_id],
-                                  backref=db.backref('owned_tickets', lazy='dynamic', cascade='all, delete-orphan'))
+                                  backref=db.backref('purchased_tickets', lazy='dynamic', cascade='all, delete-orphan'))
     create_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่จอง'})
     payment_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่จ่ายเงิน'})
     cancel_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่ยกเลิก'})
+    holder_id = db.Column(db.Integer(), db.ForeignKey('event_participants.id'))
+    holder = db.relationship('EventParticipant', foreign_keys=[holder_id],
+                             backref=db.backref('holding_ticket',
+                                                uselist=False,
+                                                cascade='all'))
 
     def generate_ticket_number(self, event):
         total_ticket = event.tickets.count()
         ticket_number = total_ticket + 1
-        self.ticket_number = f'{event.id}{ticket_number:04d}'
+        self.ticket_number = f'{event.id}-{ticket_number:04d}'
 
 
 class EventTicketPayment(db.Model):

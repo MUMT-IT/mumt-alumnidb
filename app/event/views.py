@@ -32,7 +32,8 @@ def register_event(event_id):
             form.populate_obj(participant)
             db.session.add(participant)
             for i in range(form.number.data):
-                ticket = EventTicket(event_id=event_id, participant=participant)
+                purchased_datetime = arrow.now('Asia/Bangkok').datetime
+                ticket = EventTicket(event_id=event_id, participant=participant, create_datetime=purchased_datetime)
                 ticket.generate_ticket_number(event)
                 db.session.add(ticket)
             db.session.commit()
