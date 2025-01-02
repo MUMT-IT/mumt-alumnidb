@@ -9,7 +9,8 @@ from datetime import datetime
 
 import requests
 from flask import render_template, flash, redirect, url_for, request, make_response, jsonify
-from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration
+from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
+    FlexContainer
 from sqlalchemy_utils.types.arrow import arrow
 
 from app.event import event_blueprint as event
@@ -42,10 +43,328 @@ def register_event(event_id):
                 ticket.generate_ticket_number(event)
                 db.session.add(ticket)
             db.session.commit()
+            tickets = []
+            for t in participant.purchased_tickets.filter_by(cancel_datetime=None):
+                ticket = {
+                    "type": "bubble",
+                    "hero": {
+                        "type": "image",
+                        "url": "https://developers-resource.landpress.line.me/fx/clip/clip10.jpg",
+                        "size": "full",
+                        "aspectMode": "cover",
+                        "aspectRatio": "320:213"
+                    },
+                    "body": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "contents": [
+                            {
+                                "type": "text",
+                                "text": f"{t.ticket_number}",
+                                "weight": "bold",
+                                "size": "lg",
+                                "wrap": True
+                            },
+                            {
+                                "type": "box",
+                                "layout": "vertical",
+                                "contents": [
+                                    {
+                                        "type": "box",
+                                        "layout": "baseline",
+                                        "spacing": "sm",
+                                        "contents": [
+                                            {
+                                                "type": "text",
+                                                "text": "Purchaser",
+                                                "wrap": True,
+                                                "color": "#8c8c8c",
+                                                "size": "md",
+                                                "flex": 2
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": f"{t.participant}",
+                                                "wrap": True,
+                                                "size": "md",
+                                                "flex": 4
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "box",
+                                "layout": "vertical",
+                                "contents": [
+                                    {
+                                        "type": "box",
+                                        "layout": "baseline",
+                                        "spacing": "sm",
+                                        "contents": [
+                                            {
+                                                "type": "text",
+                                                "text": "Purchased",
+                                                "wrap": True,
+                                                "color": "#8c8c8c",
+                                                "size": "md",
+                                                "flex": 2
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": f"{t.create_datetime.strftime('%d/%m/%Y %H:%M')}",
+                                                "wrap": True,
+                                                "size": "md",
+                                                "flex": 4
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "box",
+                                "layout": "vertical",
+                                "contents": [
+                                    {
+                                        "type": "box",
+                                        "layout": "baseline",
+                                        "spacing": "sm",
+                                        "contents": [
+                                            {
+                                                "type": "text",
+                                                "text": "Payment",
+                                                "wrap": True,
+                                                "color": "#8c8c8c",
+                                                "size": "md",
+                                                "flex": 2
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": f"{t.payment_datetime.strftime('%d/%m/%Y %H:%M') if t.payment_datetime else 'pending'}",
+                                                "wrap": True,
+                                                "size": "md",
+                                                "flex": 4
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "box",
+                                "layout": "vertical",
+                                "contents": [
+                                    {
+                                        "type": "box",
+                                        "layout": "baseline",
+                                        "spacing": "sm",
+                                        "contents": [
+                                            {
+                                                "type": "text",
+                                                "text": "Holder",
+                                                "wrap": True,
+                                                "color": "#8c8c8c",
+                                                "size": "md",
+                                                "flex": 2
+                                            },
+                                            {
+                                                "type": "text",
+                                                "text": f"{t.holder}",
+                                                "wrap": True,
+                                                "size": "md",
+                                                "flex": 4
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                        ],
+                        "spacing": "sm",
+                        "paddingAll": "13px"
+                    },
+                    "footer": {
+                        "type": "box",
+                        "layout": "vertical",
+                        "spacing": "sm",
+                        "contents": [
+                            {
+                                "type": "button",
+                                "style": "link",
+                                "height": "sm",
+                                "action": {
+                                    "type": "message",
+                                    "label": "เคลมบัตร",
+                                    "text": f"claim ticket:{t.ticket_number}"
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "style": "link",
+                                "height": "sm",
+                                "action": {
+                                    "type": "message",
+                                    "label": "ยกเลิกบัตร",
+                                    "text": f"cancel ticket:{t.ticket_number}"
+                                }
+                            },
+                            {
+                                "type": "button",
+                                "style": "link",
+                                "height": "sm",
+                                "action": {
+                                    "type": "clipboard",
+                                    "label": "คัดลอกเพื่อส่งต่อให้เพื่อน",
+                                    "clipboardText": f"https://liff.line.me/2006693395-RZwO4OEj/event/events/{t.event_id}/tickets/{t.ticket_number}/claim"
+                                }
+                            }
+                        ]
+                    }
+                }
+                tickets.append(ticket)
+            bubble = {
+                "type": "bubble",
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": "INVOICE" if participant.total_amount_due else "RECEIPT",
+                            "weight": "bold",
+                            "color": "#1DB446",
+                            "size": "sm"
+                        },
+                        {
+                            "type": "text",
+                            "text": "ยอดจองบัตร",
+                            "weight": "bold",
+                            "size": "xxl",
+                            "margin": "md"
+                        },
+                        {
+                            "type": "separator",
+                            "margin": "xxl"
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "margin": "xxl",
+                            "spacing": "sm",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "horizontal",
+                                    "margin": "xxl",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "ITEMS",
+                                            "size": "sm",
+                                            "color": "#555555"
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{participant.purchased_tickets.filter_by(cancel_datetime=None).count()}",
+                                            "size": "sm",
+                                            "color": "#111111",
+                                            "align": "end"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "box",
+                                    "layout": "horizontal",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "TOTAL",
+                                            "size": "sm",
+                                            "color": "#555555"
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{participant.total_balance}",
+                                            "size": "sm",
+                                            "color": "#111111",
+                                            "align": "end"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "box",
+                                    "layout": "horizontal",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "BALANCE DUE",
+                                            "size": "sm",
+                                            "color": "#555555"
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{participant.total_amount_due}",
+                                            "size": "sm",
+                                            "color": "#111111",
+                                            "align": "end"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "box",
+                                    "layout": "horizontal",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "PAID",
+                                            "size": "sm",
+                                            "color": "#555555"
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{participant.total_balance - participant.total_amount_due}",
+                                            "size": "sm",
+                                            "color": "#111111",
+                                            "align": "end"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "separator",
+                            "margin": "xxl"
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "margin": "md",
+                            "contents": [
+                                {
+                                    "type": "button",
+                                    "style": "link",
+                                    "height": "sm",
+                                    "action": {
+                                        "type": "uri",
+                                        "label": "ชำระเงิน",
+                                        "uri": f"https://liff.line.me/2006693395-RZwO4OEj/event/events/{event_id}/participants/{participant.id}/ticket-payment"
+                                    }
+                                },
+                            ]
+                        }
+                    ]
+                },
+                "styles": {
+                    "footer": {
+                        "separator": True
+                    }
+                }
+            }
+            tickets.append(bubble)
+            message = FlexMessage(alt_text=f'Purchased Tickets',
+                                  contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
             with ApiClient(configuration) as api_client:
                 line_bot_api = MessagingApi(api_client)
                 push_message_request = PushMessageRequest(to=participant.line_id, messages=[
-                    TextMessage(text='ลงทะเบียนเรียบร้อยแล้ว'), TextMessage(text=f'tickets:{event_id}')])
+                    TextMessage(text='ลงทะเบียนเรียบร้อยแล้ว'), message])
                 try:
                     api_response = line_bot_api.push_message(push_message_request)
                     pprint(api_response)
