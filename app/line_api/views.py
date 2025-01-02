@@ -493,6 +493,171 @@ def handle_message(event):
             tickets.append(bubble)
             message = FlexMessage(alt_text=f'Purchased Tickets',
                                   contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
+    elif event.message.text.startswith('holding tickets'):
+        line_id = event.source.user_id
+        holding_tickets = []
+        for p in EventParticipant.query.filter_by(line_id=line_id):
+            if p.event.start_datetime >= arrow.now('Asia/Bangkok').datetime:
+                holding_tickets.apppend(p.holding_ticket)
+            tickets = []
+        for t in holding_tickets:
+            ticket = {
+                "type": "bubble",
+                "hero": {
+                    "type": "image",
+                    "url": "https://developers-resource.landpress.line.me/fx/clip/clip10.jpg",
+                    "size": "full",
+                    "aspectMode": "cover",
+                    "aspectRatio": "320:213"
+                },
+                "body": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "text": f"{t.ticket_number}",
+                            "weight": "bold",
+                            "size": "lg",
+                            "wrap": True
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "spacing": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "Purchaser",
+                                            "wrap": True,
+                                            "color": "#8c8c8c",
+                                            "size": "md",
+                                            "flex": 2
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{t.participant}",
+                                            "wrap": True,
+                                            "size": "md",
+                                            "flex": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "spacing": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "Purchased",
+                                            "wrap": True,
+                                            "color": "#8c8c8c",
+                                            "size": "md",
+                                            "flex": 2
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{t.create_datetime.strftime('%d/%m/%Y %H:%M')}",
+                                            "wrap": True,
+                                            "size": "md",
+                                            "flex": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "spacing": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "Payment",
+                                            "wrap": True,
+                                            "color": "#8c8c8c",
+                                            "size": "md",
+                                            "flex": 2
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{t.payment_datetime.strftime('%d/%m/%Y %H:%M') if t.payment_datetime else 'pending'}",
+                                            "wrap": True,
+                                            "size": "md",
+                                            "flex": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "type": "box",
+                            "layout": "vertical",
+                            "contents": [
+                                {
+                                    "type": "box",
+                                    "layout": "baseline",
+                                    "spacing": "sm",
+                                    "contents": [
+                                        {
+                                            "type": "text",
+                                            "text": "Holder",
+                                            "wrap": True,
+                                            "color": "#8c8c8c",
+                                            "size": "md",
+                                            "flex": 2
+                                        },
+                                        {
+                                            "type": "text",
+                                            "text": f"{t.holder}",
+                                            "wrap": True,
+                                            "size": "md",
+                                            "flex": 4
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                    ],
+                    "spacing": "sm",
+                    "paddingAll": "13px"
+                },
+                "footer": {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {
+                            "type": "button",
+                            "style": "link",
+                            "height": "sm",
+                            "action": {
+                                "type": "message",
+                                "label": "ปล่อยบัตร",
+                                "text": f"unclaim ticket:{t.ticket_number}"
+                            }
+                        }
+                    ]
+                }
+            }
+            tickets.append(ticket)
+        message = FlexMessage(alt_text=f'Holding Tickets',
+                              contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
     elif event.message.text.startswith('claim ticket'):
         ticket_number = event.message.text.split(':')[-1]
         ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()

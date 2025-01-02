@@ -49,7 +49,6 @@
     withLoginOnExternalBrowser: true,
   }).then(function () {
     let profile = liff.getDecodedIDToken();
-    htmx.ajax('GET', '/event/events/' + {{ticket.event.id|tojson|safe}} + '/tickets/' + {{ticket.ticket_number|tojson|safe}} + '/line-id/' + profile.sub + '/check-holder', '#submitBtn')
   })
   document.addEventListener('closeLIFFWindow', function () {
     liff.closeWindow();
