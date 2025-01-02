@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="columns">
-      <div class="column">
+      <div class="column" id="registerForm">
         <h1 class="title is-size-4 has-text-centered">กรอกข้อมูลจองบัตรเข้าร่วมกิจกรรม</h1>
         <form hx-post="{{url_for('event.register_event', event_id=event.id)}}" hx-swap="none" hx-indicator="#submitBtn">
         {{form.hidden_tag()}}
@@ -79,6 +79,7 @@
   }).then(function () {
     let profile = liff.getDecodedIDToken();
     $('input[name="line_id"]').val(profile.sub)
+    htmx.ajax('GET', '/event/events/' + {{event.id|tojson|safe}} + '/line-id/' + profile.sub + '/check-participant', '#registerForm')
   })
   document.addEventListener('closeLIFFWindow', function () {
     liff.closeWindow();

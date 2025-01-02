@@ -208,7 +208,7 @@ def handle_message(event):
                                         "contents": [
                                             {
                                                 "type": "text",
-                                                "text": "Purchaser",
+                                                "text": "Reserver",
                                                 "wrap": True,
                                                 "color": "#8c8c8c",
                                                 "size": "md",
@@ -236,7 +236,7 @@ def handle_message(event):
                                         "contents": [
                                             {
                                                 "type": "text",
-                                                "text": "Purchased",
+                                                "text": "Reserved",
                                                 "wrap": True,
                                                 "color": "#8c8c8c",
                                                 "size": "md",
@@ -334,7 +334,7 @@ def handle_message(event):
                                 "height": "sm",
                                 "action": {
                                     "type": "message",
-                                    "label": "ยกเลิกบัตร",
+                                    "label": "ยกเลิกการจอง",
                                     "text": f"cancel ticket:{t.ticket_number}"
                                 }
                             },
@@ -345,7 +345,7 @@ def handle_message(event):
                                 "action": {
                                     "type": "clipboard",
                                     "label": "คัดลอกเพื่อส่งต่อให้เพื่อน",
-                                    "clipboardText": f"https://liff.line.me/2006693395-RZwO4OEj/event/events/{t.event_id}/tickets/{t.ticket_number}/claim"
+                                    "clipboardText": f"คลิกเพื่อเคลมบัตรเข้างานกิจกรรม {t.event.name} https://liff.line.me/2006693395-RZwO4OEj/event/events/{t.event_id}/tickets/{t.ticket_number}/claim"
                                 }
                             }
                         ]
@@ -491,15 +491,16 @@ def handle_message(event):
                 }
             }
             tickets.append(bubble)
-            message = FlexMessage(alt_text=f'Purchased Tickets',
+            message = FlexMessage(alt_text=f'Reserved Tickets',
                                   contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
     elif event.message.text.startswith('holding tickets'):
         line_id = event.source.user_id
         holding_tickets = []
         for p in EventParticipant.query.filter_by(line_id=line_id):
             if p.event.start_datetime >= arrow.now('Asia/Bangkok').datetime:
-                holding_tickets.apppend(p.holding_ticket)
-            tickets = []
+                if p.holding_ticket:
+                    holding_tickets.append(p.holding_ticket)
+        tickets = []
         for t in holding_tickets:
             ticket = {
                 "type": "bubble",
@@ -649,15 +650,53 @@ def handle_message(event):
                             "action": {
                                 "type": "message",
                                 "label": "ปล่อยบัตร",
-                                "text": f"unclaim ticket:{t.ticket_number}"
+                                "text": f"release ticket:{t.ticket_number}"
                             }
                         }
                     ]
                 }
             }
             tickets.append(ticket)
-        message = FlexMessage(alt_text=f'Holding Tickets',
-                              contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
+        if tickets:
+            message = FlexMessage(alt_text=f'Holding Tickets',
+                                  contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
+        else:
+            message = TextMessage(text='คุณไม่มีบัตรที่ถือครองขณะนี้')
+    elif event.message.text.startswith('release ticket:'):
+        ticket_number = event.message.text.split(':')[-1]
+        ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()
+        bubble = {
+            'type': 'text',
+            'text': f'คุณต้องการยกเลิกการถือบัตรหมายเลข {ticket.ticket_number} ใช่หรือไม่ บัตรหนึ่งใบสามารถมีเจ้าของได้เพียงคนเดียวที่จะใช้เช็คอินเข้างาน',
+            'quickReply': {
+                'items': [
+                    {
+                        'type': 'action',
+                        'action': {
+                            'type': 'message',
+                            'label': f'Yes',
+                            'text': f'Yes, release the ticket number {ticket.ticket_number}'
+                        }
+                    },
+                    {
+                        'type': 'action',
+                        'action': {
+                            'type': 'message',
+                            'label': 'No.',
+                            'text': 'No'
+                        }
+                    },
+                ]
+            }
+        }
+        message = TextMessage.from_dict(bubble)
+    elif event.message.text.startswith('Yes, release the ticket number'):
+        ticket_number = event.message.text.split(' ')[-1]
+        ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()
+        ticket.holder = None
+        db.session.add(ticket)
+        db.session.commit()
+        message = TextMessage(text='ยกเลิกการถือบัตรเรียบร้อยแล้ว')
     elif event.message.text.startswith('claim ticket'):
         ticket_number = event.message.text.split(':')[-1]
         ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()
@@ -768,6 +807,44 @@ def handle_message(event):
                     }
                 }
                 message = TextMessage.from_dict(bubble)
+    elif event.message.text.startswith('add ticket:'):
+        _, event_id, number = event.message.text.split(':')
+        number = int(number)
+        event_ = Event.query.get(int(event_id))
+        participant = EventParticipant.query.filter_by(event_id=int(event_id), line_id=event.source.user_id).first()
+        for i in range(number):
+            ticket = EventTicket(event_id=int(event_id),
+                                 participant=participant,
+                                 create_datetime=arrow.now('Asia/Bangkok').datetime)
+            ticket.generate_ticket_number(event_)
+            db.session.add(ticket)
+        db.session.commit()
+        msg = 'เรียบร้อย! คุณต้องการดูรายการบัตรทั้งหมดหรือไม่'
+        bubble = {
+            'type': 'text',
+            'text': msg,
+            'quickReply': {
+                'items': [
+                    {
+                        'type': 'action',
+                        'action': {
+                            'type': 'message',
+                            'label': f'Yes',
+                            'text': f'tickets:{ticket.event_id}'
+                        }
+                    },
+                    {
+                        'type': 'action',
+                        'action': {
+                            'type': 'message',
+                            'label': 'No.',
+                            'text': 'No'
+                        }
+                    },
+                ]
+            }
+        }
+        message = TextMessage.from_dict(bubble)
     else:
         fine_responses = ['ได้เลยครับ', 'Ok.', 'ไม่มีปัญหา', 'ยินดีรับใช้ครับ']
         error_responses = [

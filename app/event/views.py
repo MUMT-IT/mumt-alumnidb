@@ -1,13 +1,11 @@
 import os
 import uuid
-from pprint import pprint
 
 import arrow
 
 import boto3
 from datetime import datetime
 
-import requests
 from flask import render_template, flash, redirect, url_for, request, make_response, jsonify
 from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
     FlexContainer
@@ -367,13 +365,108 @@ def register_event(event_id):
                     TextMessage(text='ลงทะเบียนเรียบร้อยแล้ว'), message])
                 try:
                     api_response = line_bot_api.push_message(push_message_request)
-                    pprint(api_response)
                 except Exception as e:
                     print(f'Exception while sending MessageApi->push_message {e}')
             resp = make_response()
             resp.headers['HX-Trigger'] = 'closeLIFFWindow'
             return resp
+
     return render_template('event/register_form.html', form=form, event=event)
+
+
+@event.route('/events/<int:event_id>/participants/<int:participant_id>/add-ticket', methods=['GET'])
+def add_ticket(event_id, participant_id):
+    participant = EventParticipant.query.get(participant_id)
+    bubble = {
+        'type': 'text',
+        'text': f'คุณได้ลงทะเบียนแล้ว คุณต้องการจองบัตรเพิ่มจำนวนเท่าใด',
+        'quickReply': {
+            'items': [
+                {
+                    'type': 'action',
+                    'action': {
+                        'type': 'message',
+                        'label': 'ไม่ต้องการ',
+                        'text': 'No'
+                    }
+                },
+                {
+                    'type': 'action',
+                    'action': {
+                        'type': 'message',
+                        'label': f'1',
+                        'text': f'add ticket:{event_id}:1'
+                    }
+                },
+                {
+                    'type': 'action',
+                    'action': {
+                        'type': 'message',
+                        'label': f'2',
+                        'text': f'add ticket:{event_id}:2'
+                    }
+                },
+                {
+                    'type': 'action',
+                    'action': {
+                        'type': 'message',
+                        'label': f'3',
+                        'text': f'add ticket:{event_id}:3'
+                    }
+                },
+                {
+                    'type': 'action',
+                    'action': {
+                        'type': 'message',
+                        'label': f'4',
+                        'text': f'add ticket:{event_id}:4'
+                    }
+                },
+                {
+                    'type': 'action',
+                    'action': {
+                        'type': 'message',
+                        'label': f'5',
+                        'text': f'add ticket:{event_id}:5'
+                    }
+                },
+            ]
+        }
+    }
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        push_message_request = PushMessageRequest(to=participant.line_id,
+                                                  messages=[TextMessage.from_dict(bubble)])
+        try:
+            api_response = line_bot_api.push_message(push_message_request)
+        except Exception as e:
+            print(f'Exception while sending MessageApi->push_message {e}')
+    resp = make_response()
+    resp.headers['HX-Trigger'] = 'closeLIFFWindow'
+    return resp
+
+
+@event.route('/events/<int:event_id>/line-id/<line_id>/check-participant', methods=['GET'])
+def check_participant(event_id, line_id):
+    participant = EventParticipant.query.filter_by(line_id=line_id, event_id=event_id).first()
+    resp = make_response()
+    if participant:
+        add_ticket_url = url_for('event.add_ticket', event_id=event_id, participant_id=participant.id)
+        template = f"""
+            <h1 class='title has-text-centered'>คุณได้ลงทะเบียนแล้ว</h1>
+            <p>
+            คุณได้ทำการจองบัตรไว้เป็นจำนวน {participant.purchased_tickets.filter_by(cancel_datetime=None).count()} ใบ
+            </p>
+            <div class='buttons is-centered'>
+                <button onclick='closeLIFFWindow()' class='button is-medium'>ปิดหน้าต่าง</button>
+                <button hx-get='{add_ticket_url}' class='button is-medium is-info'>จองบัตรเพิ่ม</button>
+            </div>
+            """
+        resp = make_response(template)
+        return resp
+    else:
+        resp.headers['HX-Reswap'] = 'none'
+    return resp
 
 
 @event.route('/events/<int:event_id>/check-tickets')
@@ -434,14 +527,10 @@ def check_ticket_holder(event_id, ticket_number, line_id):
         resp = make_response()
         participant = EventParticipant.query.filter_by(line_id=line_id, event_id=event_id).first()
         if not participant.holding_ticket:
-            print('not holding ticket')
-            resp.headers['HX-Redirect'] = url_for('event.claim_ticket', event_id=event_id, ticket_number=ticket_number)
-        elif participant.holding_ticket.ticket_number != ticket_number:
-            print('holding another ticket')
+            resp.headers['HX-Reswap'] = 'none'
+        else:
             resp.headers['HX-Redirect'] = url_for('event.show_ticket_detail', event_id=event_id,
                                                   ticket_number=ticket_number)
-        else:
-            resp.headers['HX-Swap'] = 'none'
         return resp
 
 
@@ -470,7 +559,6 @@ def upload_payment_slip(event_id, participant_id):
             TextMessage(text='ได้รับข้อมูลเรียบร้อยแล้วกรุณารอการตรวจสอบ')])
         try:
             api_response = line_bot_api.push_message(push_message_request)
-            pprint(api_response)
         except Exception as e:
             print(f'Exception while sending MessageApi->push_message {e}')
     resp = make_response()
