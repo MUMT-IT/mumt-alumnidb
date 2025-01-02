@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+<h1 class="title is-size-4 has-text-centered">{{event.name}}</h1>
+<h1 class="subtitle is-size-5 has-text-centered">{{event.detail}}</h1>
+<form hx-post="{{ url_for('event.claim_ticket', event_id=event.id, ticket_number=ticket_number) }}"
+  hx-indicator="#submitBtn" hx-swap="none">
+  {{ form.hidden_tag() }}
+  <div class="field">
+    <input type="hidden" name="line_id" value="" required/>
+    <div class="field">
+      <label class="label">{{form.title.label}}</label>
+      <div class="control">
+        {{form.title(class="input")}}
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">{{form.firstname.label}}</label>
+      <div class="control">
+        {{form.firstname(class="input is-danger")}}
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">{{form.lastname.label}}</label>
+      <div class="control">
+        {{form.lastname(class="input is-danger")}}
+      </div>
+    </div>
+    <div class="field">
+      <label class="label">{{form.telephone.label}}</label>
+      <div class="control">
+        {{form.telephone(class="input")}}
+        <p class="help is-info">สำหรับติดต่อในกรณีจำเป็น</p>
+      </div>
+    </div>
+    <div class="field is-grouped is-centered">
+      <div class="control">
+        <a class="button is-medium" onclick="closeLIFFWindow()">Cancel</a>
+      </div>
+      <div class="control">
+        <button id="submitBtn" type="submit" class="button is-success is-medium">Submit</button>
+      </div>
+    </div>
+  </div>
+</form>
+</section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+  function closeLIFFWindow() {
+    liff.closeWindow();
+  }
+  liff.init({
+    liffId: "2006693395-RZwO4OEj", // Use own liffId
+    withLoginOnExternalBrowser: true,
+  }).then(function () {
+    let profile = liff.getDecodedIDToken();
+    $('input[name="line_id"]').val(profile.sub)
+  })
+  document.addEventListener('closeLIFFWindow', function () {
+    liff.closeWindow();
+  })
+</script>
+{% endblock %}

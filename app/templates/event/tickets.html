@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket Payment{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns">
+            <div class="column">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="card-header-title">Ticket Payment</h1>
+                    </div>
+                    <div class="card-content">
+                        <table class="table is-fullwidth">
+                            <tr>
+                                <td>ยอดชำระรวม</td>
+                                <td class="has-text-right">{{participant.total_balance}} บาท</td>
+                            </tr>
+                            <tr>
+                                <td class="has-text-danger">ยอดชำระค้างจ่าย</td>
+                                <td class="has-text-right has-text-danger">{{participant.total_amount_due}} บาท</td>
+                            </tr>
+                        </table>
+                        {% if participant.total_amount_due %}
+                        <form hx-post="{{url_for('event.upload_payment_slip', event_id=event.id, participant_id=participant.id)}}"
+                              hx-swap="none"
+                              hx-indicator="#submitBtn"
+                              enctype="multipart/form-data">
+                            <div id="file" class="file is-normal is-boxed has-name">
+                                <label class="file-label">
+                                    <input class="file-input is-danger" required type="file" name="file"/>
+                                    <span class="file-cta">
+                              <span class="file-icon">
+                                  <i class="fa-solid fa-file-arrow-up"></i>
+                              </span>
+                              <span class="file-label">คลิกเพื่ออัพโหลด Payment Slip… </span>
+                            </span>
+                                    <span class="file-name"></span>
+                                </label>
+                            </div>
+                            <div class="field">
+                                <label class="label">จำนวนเงิน</label>
+                                <div class="control">
+                                    <input type="number" class="input is-danger" required name="amount" step="any"/>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-success is-medium" id="submitBtn" type="submit">Send</button>
+                                </div>
+                            </div>
+                        </form>
+                        {% else %}
+                        <button class="button is-medium" onclick="closeLIFFWindow()">Close</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+    const fileInput = document.querySelector("#file input[type=file]");
+    fileInput.onchange = () => {
+        if (fileInput.files.length > 0) {
+            const fileName = document.querySelector("#file .file-name");
+            fileName.textContent = fileInput.files[0].name;
+        }
+    };
+    document.addEventListener('closeLIFFWindow', function () {
+        liff.closeWindow();
+    })
+    function closeLIFFWindow() {
+        liff.closeWindow()
+    }
+</script>
+{% endblock %}

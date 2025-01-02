@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}
+Main
+{% endblock %}
+
+{% block content %}
+<section class="section">
+  Redirecting...
+</section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+  liff.init({
+    liffId: "2006693395-RZwO4OEj", // Use own liffId
+    withLoginOnExternalBrowser: true,
+  })
+</script>
+{% endblock %}
