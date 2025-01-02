@@ -1,83 +1,61 @@
 {% extends "base.html" %}
 
-{% block title %}Upcoming Events{% endblock %}
+{% block title %}Ticket Payment{% endblock %}
 
 {% block content %}
-{% include "event/nav.html" %}
 <section class="section">
     <div class="container">
         <div class="columns">
             <div class="column">
-                <h1 class="title is-size-4">{{event.name}}</h1>
-                <h1 class="subtitle is-size-5">{{event.detail}}</h1>
-                <label class="label">รายการบัตรที่ได้จองไว้</label>
-                <table class="table is-fullwidth is-striped is-bordered">
-                    <thead>
-                    <th>รหัสบัตร</th>
-                    <th>ชื่อผู้ใช้บัตร</th>
-                    <th>วันที่จอง</th>
-                    <th></th>
-                    </thead>
-                    <tbody>
-                    {% for ticket in participant.owned_tickets %}
-                    <tr>
-                        <td><strong>{{ticket.ticket_number}}</strong></td>
-                        <td>{{ticket.owner or 'ไม่มีเจ้าของ'}}</td>
-                        <td>{{ticket.create_datetime|localdatetime}}</td>
-                        <td>
-                            <!--              <div class="buttons">-->
-                            <!--                {% if not ticket.owner %}-->
-                            <!--                <a hx-get="{{url_for('event.claim_ticket', event_id=event.id, ticket_id=ticket.id)}}" class="button is-small is-rounded is-link"-->
-                            <!--                   hx-target="#claim-modal"-->
-                            <!--                   hx-swap="innerHTML"-->
-                            <!--                   hx-confirm="ท่านแน่ใจว่าจะเคลมบัตรนี้หรือไม่ หากท่านเคยเคลมบัตรแล้วบัตรนี้จะถูกใช้แทนบัตรเดิม"-->
-                            <!--                >claim</a>-->
-                            <!--                {% else %}-->
-                            <!--                <a hx-delete="{{url_for('event.claim_ticket', event_id=event.id, ticket_id=ticket.id)}}"-->
-                            <!--                   class="button is-small is-rounded is-outlined is-danger"-->
-                            <!--                   hx-target="#claim-modal"-->
-                            <!--                   hx-swap="innerHTML"-->
-                            <!--                   hx-confirm="ท่านแน่ใจว่าจะยกเลิกการเป็นเจ้าของบัตรนี้หรือไม่"-->
-                            <!--                >unclaim</a>-->
-                            <!--                {% endif %}-->
-                            <!--                <a href="{{url_for('event.register_event', event_id=event.id)}}" class="button is-small is-rounded is-danger">cancel</a>-->
-                            <!--              </div>-->
-                        </td>
-                    </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                <h1 class="title is-size-5">ยอดชำระรวม {{participant.total_balance}} บาท</h1>
-                <h1 class="subtitle is-size-5 has-text-danger">ยอดชำระค้างจ่าย {{participant.total_amount_due}} บาท</h1>
-                {% if participant.total_amount_due %}
-                <form action="{{url_for('event.upload_payment_slip', event_id=event.id, participant_id=participant.id)}}"
-                      method="post" enctype="multipart/form-data">
-                    <div id="file" class="file is-normal is-boxed has-name">
-                        <label class="file-label">
-                            <input class="file-input" type="file" name="file"/>
-                            <span class="file-cta">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="card-header-title">Ticket Payment</h1>
+                    </div>
+                    <div class="card-content">
+                        <table class="table is-fullwidth">
+                            <tr>
+                                <td>ยอดชำระรวม</td>
+                                <td class="has-text-right">{{participant.total_balance}} บาท</td>
+                            </tr>
+                            <tr>
+                                <td class="has-text-danger">ยอดชำระค้างจ่าย</td>
+                                <td class="has-text-right has-text-danger">{{participant.total_amount_due}} บาท</td>
+                            </tr>
+                        </table>
+                        {% if participant.total_amount_due %}
+                        <form hx-post="{{url_for('event.upload_payment_slip', event_id=event.id, participant_id=participant.id)}}"
+                              hx-swap="none"
+                              hx-indicator="#submitBtn"
+                              enctype="multipart/form-data">
+                            <div id="file" class="file is-normal is-boxed has-name">
+                                <label class="file-label">
+                                    <input class="file-input is-danger" required type="file" name="file"/>
+                                    <span class="file-cta">
                               <span class="file-icon">
                                   <i class="fa-solid fa-file-arrow-up"></i>
                               </span>
-                              <span class="file-label">Upload Payment Slip… </span>
+                              <span class="file-label">คลิกเพื่ออัพโหลด Payment Slip… </span>
                             </span>
-                            <span class="file-name"></span>
-                        </label>
+                                    <span class="file-name"></span>
+                                </label>
+                            </div>
+                            <div class="field">
+                                <label class="label">จำนวนเงิน</label>
+                                <div class="control">
+                                    <input type="number" class="input is-danger" required name="amount" step="any"/>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <button class="button is-success is-medium" id="submitBtn" type="submit">Send</button>
+                                </div>
+                            </div>
+                        </form>
+                        {% else %}
+                        <button class="button is-medium" onclick="closeLIFFWindow()">Close</button>
+                        {% endif %}
                     </div>
-                    <div class="field">
-                        <label class="label">จำนวนเงิน</label>
-                        <div class="control">
-                            <input type="number" class="input is-danger" required name="amount" step="any"/>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <div class="control">
-                            <input class="button" type="submit" value="Upload"/>
-                        </div>
-                    </div>
-                </form>
-                {% endif %}
-                <div id="claim-modal"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -93,5 +71,11 @@
             fileName.textContent = fileInput.files[0].name;
         }
     };
+    document.addEventListener('closeLIFFWindow', function () {
+        liff.closeWindow();
+    })
+    function closeLIFFWindow() {
+        liff.closeWindow()
+    }
 </script>
 {% endblock %}

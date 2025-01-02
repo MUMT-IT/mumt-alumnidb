@@ -18,7 +18,7 @@ class Event(db.Model):
 
     @property
     def detail(self):
-        return f'{self.start_datetime} - {self.end_datetime} สถานที่ {self.location}'
+        return f'{self.time} สถานที่ {self.location}'
 
     @property
     def time(self):
@@ -44,11 +44,11 @@ class EventParticipant(db.Model):
 
     @property
     def total_balance(self):
-        return len([ticket for ticket in self.owned_tickets]) * self.event.ticket_price
+        return len([ticket for ticket in self.purchased_tickets]) * self.event.ticket_price
 
     @property
     def total_amount_due(self):
-        return self.total_balance - (len([ticket for ticket in self.owned_tickets if ticket.payment_datetime]) * self.event.ticket_price)
+        return self.total_balance - (len([ticket for ticket in self.purchased_tickets if ticket.payment_datetime]) * self.event.ticket_price)
 
 
 class EventTicket(db.Model):

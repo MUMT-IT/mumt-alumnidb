@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+<h1 class="title is-size-4 has-text-centered">{{ticket.event.name}}</h1>
+<h1 class="subtitle is-size-5 has-text-centered">{{ticket.event.detail}}</h1>
+<table class="table is-fullwidth">
+  <tbody>
+  <tr>
+    <td>TICKET NUMBER</td>
+    <td><strong>{{ticket.ticket_number}}</strong></td>
+  </tr>
+  <tr>
+    <td>PURCHASER</td>
+    <td>{{ticket.participant}}</td>
+  </tr>
+  <tr>
+    <td>RESERVED AT</td>
+    <td>{{ticket.create_datetime|localdatetime}}</td>
+  </tr>
+  <tr>
+    <td>PAID AT</td>
+    <td>{{ticket.payment_datetime|localdatetime or 'pending'}}</td>
+  </tr>
+  <tr>
+    <td>HOLDER</td>
+    <td>{{ticket.holder}}</td>
+  </tr>
+  </tbody>
+</table>
+{% if not ticket.payment_datetime %}
+<span class="notification is-warning">
+  บัตรยังไม่ได้รับการยืนยันการชำระค่าจอง ท่านอาจต้องชำระหน้างานเพื่อเข้าร่วมงาน
+</span>
+{% endif %}
+<div class="buttons">
+  <button onclick="closeLIFFWindow()" class="button is-medium">Close</button>
+</div>
+</section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+  function closeLIFFWindow() {
+    liff.closeWindow();
+  }
+  liff.init({
+    liffId: "2006693395-RZwO4OEj", // Use own liffId
+    withLoginOnExternalBrowser: true,
+  }).then(function () {
+    let profile = liff.getDecodedIDToken();
+    htmx.ajax('GET', '/event/events/' + {{ticket.event.id|tojson|safe}} + '/tickets/' + {{ticket.ticket_number|tojson|safe}} + '/line-id/' + profile.sub + '/check-holder', '#submitBtn')
+  })
+  document.addEventListener('closeLIFFWindow', function () {
+    liff.closeWindow();
+  })
+</script>
+{% endblock %}

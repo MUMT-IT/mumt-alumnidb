@@ -22,6 +22,6 @@ class ParticipantForm(ModelForm):
     number = IntegerField('จำนวนบัตร', default=1)
 
 
-class TicketClaimForm(FlaskForm):
-    telephone = StringField('หมายเลขโทรศัพท์', validators=[DataRequired()])
-    otp = StringField('OTP')
+class TicketClaimForm(ModelForm):
+    class Meta:
+        model = EventParticipant
