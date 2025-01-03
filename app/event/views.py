@@ -1,3 +1,5 @@
+import base64
+import io
 import os
 import uuid
 
@@ -9,6 +11,7 @@ from datetime import datetime
 from flask import render_template, flash, redirect, url_for, request, make_response, jsonify
 from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
     FlexContainer
+from qrcode.main import QRCode
 from sqlalchemy_utils.types.arrow import arrow
 
 from app.event import event_blueprint as event
@@ -518,7 +521,14 @@ def claim_ticket(event_id, ticket_number):
 @event.route('/events/<int:event_id>/tickets/<ticket_number>/detail')
 def show_ticket_detail(event_id, ticket_number):
     ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()
-    return render_template('event/ticket_detail.html', ticket=ticket)
+    qr = QRCode(version=1, box_size=10, border=5)
+    qr.add_data(ticket_number)
+    qr.make(fit=True)
+    buffer = io.BytesIO()
+    img = qr.make_image(fill_color="black", back_color="white")
+    img.save(buffer, format='PNG')
+    qr_image_bytes = base64.b64encode(buffer.getvalue()).decode()
+    return render_template('event/ticket_detail.html', ticket=ticket, qrcode=qr_image_bytes)
 
 
 @event.route('/events/<int:event_id>/tickets/<ticket_number>/line-id/<line_id>/check-holder')

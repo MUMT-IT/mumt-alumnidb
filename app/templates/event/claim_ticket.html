@@ -1,9 +1,16 @@
 {% extends "base.html" %}
+{% block title %}Ticket Claim{% endblock %}
 
 {% block content %}
 <section class="section">
 <h1 class="title is-size-4 has-text-centered">{{event.name}}</h1>
 <h1 class="subtitle is-size-5 has-text-centered">{{event.detail}}</h1>
+<div class="field">
+  <label class="label">หมายเลขบัตร</label>
+  <div class="control">
+    <input value="{{ticket_number}}" readonly class="input">
+  </div>
+</div>
 <form hx-post="{{ url_for('event.claim_ticket', event_id=event.id, ticket_number=ticket_number) }}"
   hx-indicator="#submitBtn" hx-swap="none">
   {{ form.hidden_tag() }}
