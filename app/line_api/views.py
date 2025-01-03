@@ -1,10 +1,9 @@
 import os
 import random
 from datetime import datetime
-from pprint import pprint
 
 import arrow
-from flask import request, abort
+from flask import request, abort, url_for
 from pytz import timezone
 
 from app import app, db
@@ -643,6 +642,16 @@ def handle_message(event):
                     "layout": "vertical",
                     "spacing": "sm",
                     "contents": [
+                        {
+                            "type": "button",
+                            "style": "link",
+                            "height": "sm",
+                            "action": {
+                                "type": "uri",
+                                "label": "แสดงบัตร",
+                                "uri": f"https://liff.line.me/2006693395-RZwO4OEj/" + url_for('event.show_ticket_detail', ticket_number=t.ticket_number, event_id=t.event_id)
+                            }
+                        },
                         {
                             "type": "button",
                             "style": "link",

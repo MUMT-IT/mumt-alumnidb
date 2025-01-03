@@ -12,8 +12,10 @@ from flask import render_template, flash, redirect, url_for, request, make_respo
 from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
     FlexContainer
 from qrcode.main import QRCode
+from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy_utils.types.arrow import arrow
 
+from app import app
 from app.event import event_blueprint as event
 from app.event.forms import ParticipantForm, TicketClaimForm
 from app.event.models import *
@@ -521,13 +523,39 @@ def claim_ticket(event_id, ticket_number):
 @event.route('/events/<int:event_id>/tickets/<ticket_number>/detail')
 def show_ticket_detail(event_id, ticket_number):
     ticket = EventTicket.query.filter_by(ticket_number=ticket_number).first()
-    qr = QRCode(version=1, box_size=10, border=5)
+    template_img_path = os.path.join(app.root_path, 'static/img/', 'mumt-rt-party-ticket.png')
+    template_img = Image.open(template_img_path)
+    I = ImageDraw.Draw(template_img)
+    ticket_font = ImageFont.truetype(os.path.join(app.root_path, 'static/fonts/', 'BaiJamjuree-Bold.ttf'),
+                                     size=72)
+    name_font = ImageFont.truetype(os.path.join(app.root_path, 'static/fonts/', 'BaiJamjuree-Regular.ttf'),
+                                   size=60)
+    I.text((440, 1000), f'เลขบัตร {ticket.ticket_number}', fill=(0, 0, 0), font=ticket_font)
+    holder_name = f'{ticket.holder.title}{ticket.holder.firstname}\n{ticket.holder.lastname}' if ticket.holder else 'ยังไม่ได้ลงทะเบียนผู้ถืิอบัตร'
+    I.text((440, 1100), holder_name, fill=(0, 0, 0), font=name_font)
+    payment_datetime = ticket.payment_datetime.strftime("%d/%m/%Y %X") if ticket.payment_datetime else 'pending'
+    I.text((440, 1300), f'PAYMENT {payment_datetime}', fill=(0, 0, 0), font=name_font)
+
+    qr = QRCode(version=1, box_size=20, border=2)
     qr.add_data(ticket_number)
-    qr.make(fit=True)
+    qr.make()
+    qr_img = qr.make_image()
+
+    img_w, img_h = template_img.size
+    qr_w, qr_h = qr_img.size
+
+    # The qrcode.image cannot be pasted directly.
+    # It has to be saved as PNG and opened using Image.open.
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format='PNG')
+    qr_img = Image.open(qr_buffer)
+    pos = ((img_w - qr_w) // 2, 1500)
+    template_img.paste(qr_img, pos)
+
     buffer = io.BytesIO()
-    img = qr.make_image(fill_color="black", back_color="white")
-    img.save(buffer, format='PNG')
+    template_img.save(buffer, format='PNG')
     qr_image_bytes = base64.b64encode(buffer.getvalue()).decode()
+
     return render_template('event/ticket_detail.html', ticket=ticket, qrcode=qr_image_bytes)
 
 
