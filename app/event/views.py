@@ -48,11 +48,14 @@ def register_event(event_id):
             participant = EventParticipant(event_id=event_id)
             form.populate_obj(participant)
             db.session.add(participant)
+            event_ = Event.query.get(event_id)
             for i in range(form.number.data):
                 purchased_datetime = arrow.now('Asia/Bangkok').datetime
                 ticket = EventTicket(event_id=event_id, participant=participant, create_datetime=purchased_datetime)
-                ticket.generate_ticket_number(event)
+                event_.last_ticket_number += 1
+                ticket.ticket_number = f'{event_.id}-{event_.last_ticket_number:04d}'
                 db.session.add(ticket)
+                db.session.add(event_)
             db.session.commit()
             tickets = []
             for t in participant.purchased_tickets.filter_by(cancel_datetime=None):

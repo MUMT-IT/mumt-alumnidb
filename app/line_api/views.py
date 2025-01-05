@@ -834,8 +834,10 @@ def handle_message(event):
             ticket = EventTicket(event_id=int(event_id),
                                  participant=participant,
                                  create_datetime=arrow.now('Asia/Bangkok').datetime)
-            ticket.generate_ticket_number(event_)
+            event_.last_ticket_number += 1
+            ticket.ticket_number = f'{event_.id}-{event_.last_ticket_number:04d}'
             db.session.add(ticket)
+            db.session.add(event_)
         db.session.commit()
         msg = 'เรียบร้อย! คุณต้องการดูรายการบัตรทั้งหมดหรือไม่'
         bubble = {
