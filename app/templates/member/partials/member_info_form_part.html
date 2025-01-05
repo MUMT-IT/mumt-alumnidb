@@ -1,0 +1,56 @@
+<form hx-post="{{url_for('member.edit_member_info')}}" hx-indicator="#submitBtn">
+{{form.hidden_tag()}}
+{{form.line_id(value=line_id, type="hidden")}}
+<div class="field">
+    <label class="label">{{form.title.label}}</label>
+    <div class="control">
+        {{form.title(class="input")}}
+    </div>
+</div>
+<div class="field">
+    <label class="label">{{form.firstname.label}}</label>
+    <div class="control">
+        {{form.firstname(class="input is-danger")}}
+    </div>
+</div>
+<div class="field">
+    <label class="label">{{form.lastname.label}}</label>
+    <div class="control">
+        {{form.lastname(class="input is-danger")}}
+    </div>
+</div>
+<div class="field">
+    <label class="label">{{form.telephone.label}}</label>
+    <div class="control">
+        {{form.telephone(class="input")}}
+    </div>
+</div>
+<div class="field">
+    <label class="label">{{form.email.label}}</label>
+    <div class="control">
+        {{form.email(class="input")}}
+    </div>
+</div>
+<div class="field">
+    <label class="label">{{form.graduate_year.label}}</label>
+    <div class="control">
+        {{form.graduate_year(class="input")}}
+    </div>
+</div>
+<div class="field">
+    <label class="label">{{form.program.label}}</label>
+    <div class="select">
+        {{form.program()}}
+    </div>
+</div>
+<div class="field">
+    <label class="label">{{form.work_office.label}}</label>
+    <div class="control">
+        {{form.work_office(class="textarea")}}
+    </div>
+</div>
+<div class="field is-grouped">
+    <button class="button is-medium" onclick="closeLIFFWindow()">Cancel</button>
+    <button type="submit" id="submitBtn" class="button is-success is-medium">Save</button>
+</div>
+</form>

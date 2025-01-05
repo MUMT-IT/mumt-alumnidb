@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Event Participant Registration{% endblock %}
+{% block title %}Event Registration{% endblock %}
 
 {% block content %}
 <section class="section">
@@ -16,51 +16,9 @@
       </div>
     </div>
     <div class="columns">
-      <div class="column">
+      <div class="column" id="registerForm">
         <h1 class="title is-size-4 has-text-centered">กรอกข้อมูลจองบัตรเข้าร่วมกิจกรรม</h1>
-        <form hx-post="{{url_for('event.register_event', event_id=event.id)}}" hx-swap="none" hx-indicator="#submitBtn">
-        {{form.hidden_tag()}}
-        <input type="hidden" name="line_id" value="" required/>
-          <div class="field">
-            <label class="label">{{form.title.label}}</label>
-            <div class="control">
-              {{form.title(class="input")}}
-            </div>
-          </div>
-        <div class="field">
-          <label class="label">{{form.firstname.label}}</label>
-          <div class="control">
-            {{form.firstname(class="input is-danger")}}
-          </div>
-        </div>
-        <div class="field">
-          <label class="label">{{form.lastname.label}}</label>
-          <div class="control">
-            {{form.lastname(class="input is-danger")}}
-          </div>
-        </div>
-        <div class="field">
-          <label class="label">{{form.telephone.label}}</label>
-          <div class="control">
-            {{form.telephone(class="input")}}
-            <p class="help is-info">สำหรับติดต่อในกรณีจำเป็น</p>
-          </div>
-        </div>
-        <div class="field">
-          <label class="label">{{form.number.label}}ที่ต้องการจอง</label>
-          <div class="control">
-            {{form.number(class="input")}}
-          </div>
-        </div>
-        <div class="field is-grouped is-centered">
-          <div class="control">
-            <a class="button is-medium" onclick="closeLIFFWindow()">Cancel</a>
-          </div>
-          <div class="control">
-            <button id="submitBtn" type="submit" class="button is-success is-medium">Submit</button>
-          </div>
-        </div>
-        </form>
+        <div id="form-body"></div>
       </div>
     </div>
   </div>
@@ -78,7 +36,7 @@
     withLoginOnExternalBrowser: true,
   }).then(function () {
     let profile = liff.getDecodedIDToken();
-    $('input[name="line_id"]').val(profile.sub)
+    htmx.ajax('GET', '/event/events/' + {{event.id|tojson|safe}} + '/register-form/line-id/' + profile.sub, '#form-body')
   })
   document.addEventListener('closeLIFFWindow', function () {
     liff.closeWindow();

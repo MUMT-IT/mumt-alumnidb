@@ -24,6 +24,14 @@ from app.main import main_blueprint
 
 app.register_blueprint(main_blueprint)
 
+from app.member import member_blueprint
+
+app.register_blueprint(member_blueprint)
+
+from app.member.models import MemberInfo
+
+admin.add_view(ModelView(MemberInfo, db.session, category='Member'))
+
 from app.event import event_blueprint
 
 app.register_blueprint(event_blueprint)

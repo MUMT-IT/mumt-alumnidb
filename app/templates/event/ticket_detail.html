@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Ticket Detail{% endblock %}
+
 {% block content %}
 <section class="section">
 <h1 class="title is-size-4 has-text-centered">{{ticket.event.name}}</h1>
@@ -11,7 +13,7 @@
     <td><strong>{{ticket.ticket_number}}</strong></td>
   </tr>
   <tr>
-    <td>PURCHASER</td>
+    <td>RESERVER</td>
     <td>{{ticket.participant}}</td>
   </tr>
   <tr>
@@ -19,7 +21,7 @@
     <td>{{ticket.create_datetime|localdatetime}}</td>
   </tr>
   <tr>
-    <td>PAID AT</td>
+    <td>PAYMENT</td>
     <td>{{ticket.payment_datetime|localdatetime or 'pending'}}</td>
   </tr>
   <tr>
@@ -28,10 +30,11 @@
   </tr>
   </tbody>
 </table>
+<img src="data:image/png;base64,{{ qrcode }}" alt="QR Code">
 {% if not ticket.payment_datetime %}
-<span class="notification is-warning">
+<div class="notification is-warning is-light">
   บัตรยังไม่ได้รับการยืนยันการชำระค่าจอง ท่านอาจต้องชำระหน้างานเพื่อเข้าร่วมงาน
-</span>
+</div>
 {% endif %}
 <div class="buttons">
   <button onclick="closeLIFFWindow()" class="button is-medium">Close</button>
