@@ -60,7 +60,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": f"{url_for('static', filename='img/event.jpg', _external=True)}",
+                    "url": f"{url_for('static', filename='img/event-resized.png', _external=True)}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
@@ -180,7 +180,7 @@ def handle_message(event):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": f"{url_for('static', filename='img/tickets.jpg', _external=True)}",
+                        "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True)}",
                         "size": "full",
                         "aspectMode": "cover",
                         "aspectRatio": "320:213"
@@ -505,7 +505,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": f"{url_for('static', filename='tickets.jpg', _external=True)}",
+                    "url": f"{url_for('static', filename='tickets-resized.png', _external=True)}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
@@ -532,7 +532,7 @@ def handle_message(event):
                                     "contents": [
                                         {
                                             "type": "text",
-                                            "text": "Purchaser",
+                                            "text": "Reserver",
                                             "wrap": True,
                                             "color": "#8c8c8c",
                                             "size": "md",
@@ -560,7 +560,7 @@ def handle_message(event):
                                     "contents": [
                                         {
                                             "type": "text",
-                                            "text": "Purchased",
+                                            "text": "Reserved",
                                             "wrap": True,
                                             "color": "#8c8c8c",
                                             "size": "md",
