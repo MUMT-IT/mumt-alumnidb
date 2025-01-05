@@ -60,7 +60,7 @@ def register_event(event_id):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": "https://developers-resource.landpress.line.me/fx/clip/clip10.jpg",
+                        "url": f"{url_for('static', filename='img/tickets.jpg')}",
                         "size": "full",
                         "aspectMode": "cover",
                         "aspectRatio": "320:213"

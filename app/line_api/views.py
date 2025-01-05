@@ -60,7 +60,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": "https://developers-resource.landpress.line.me/fx/clip/clip10.jpg",
+                    "url": f"{url_for('static', filename='img/event.jpg')}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
@@ -180,7 +180,7 @@ def handle_message(event):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": "https://developers-resource.landpress.line.me/fx/clip/clip10.jpg",
+                        "url": f"{url_for('static', filename='img/tickets.jpg')}",
                         "size": "full",
                         "aspectMode": "cover",
                         "aspectRatio": "320:213"
@@ -505,7 +505,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": "https://developers-resource.landpress.line.me/fx/clip/clip10.jpg",
+                    "url": f"{url_for('static', filename='tickets.jpg')}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
