@@ -16,6 +16,7 @@ from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy_utils.types.arrow import arrow
 
 from app import app
+from app.member.models import MemberInfo
 from app.event import event_blueprint as event
 from app.event.forms import ParticipantForm, TicketClaimForm
 from app.event.models import *
@@ -34,6 +35,13 @@ def register_event(event_id):
     event = Event.query.get(event_id)
     form = ParticipantForm()
     if form.validate_on_submit():
+        member = MemberInfo.query.filter_by(line_id=form.line_id.data).first()
+        if not member:
+            member = MemberInfo()
+        if form.group.data == 'ศิษย์เก่า' and form.consent.data:
+            form.populate_obj(member)
+            db.session.add(member)
+            db.session.commit()
         participant = EventParticipant.query.filter_by(line_id=form.line_id.data,
                                                        event_id=event_id).first()
         if not participant:
@@ -377,6 +385,14 @@ def register_event(event_id):
             return resp
 
     return render_template('event/register_form.html', form=form, event=event)
+
+
+@event.route('/events/<int:event_id>/register-form/line-id/<line_id>', methods=['GET'])
+def load_register_form(event_id, line_id):
+    member = MemberInfo.query.filter_by(line_id=line_id).first()
+    form = ParticipantForm(obj=member)
+    return render_template('event/partials/register_form_part.html',
+                           form=form, event_id=event_id, line_id=line_id)
 
 
 @event.route('/events/<int:event_id>/participants/<int:participant_id>/add-ticket', methods=['GET'])
