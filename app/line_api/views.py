@@ -60,7 +60,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": f"{url_for('static', filename='img/event-resized.png', _external=True)}",
+                    "url": f"{url_for('static', filename='img/event-resized.png', _external=True, _scheme='https')}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
@@ -180,7 +180,7 @@ def handle_message(event):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True)}",
+                        "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True, _scheme='https')}",
                         "size": "full",
                         "aspectMode": "cover",
                         "aspectRatio": "320:213"
@@ -325,7 +325,13 @@ def handle_message(event):
                                     "type": "message",
                                     "label": "เคลมบัตร",
                                     "text": f"claim ticket:{t.ticket_number}"
-                                }
+                                } if not t.holder or (t.holder.line_id != event.source.user_id) else {
+                                        "type": "uri",
+                                        "label": "แสดงบัตร",
+                                        "uri": f"https://liff.line.me/2006693395-RZwO4OEj/"\
+                                               + url_for('event.show_ticket_detail',
+                                                         ticket_number=t.ticket_number, event_id=t.event_id)
+                                    }
                             },
                             {
                                 "type": "button",
@@ -493,6 +499,9 @@ def handle_message(event):
             message = FlexMessage(alt_text=f'Reserved Tickets',
                                   contents=FlexContainer.from_dict({'type': 'carousel', 'contents': tickets}))
     elif event.message.text.startswith('holding tickets'):
+        print(
+            url_for('static', filename='img/tickets-resized.png', _external=True, _scheme='https')
+        )
         line_id = event.source.user_id
         holding_tickets = []
         for p in EventParticipant.query.filter_by(line_id=line_id):
@@ -505,7 +514,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True)}",
+                    "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True, _scheme='https')}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
