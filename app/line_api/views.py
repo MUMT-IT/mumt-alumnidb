@@ -60,7 +60,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": f"{url_for('static', filename='img/event.jpg')}",
+                    "url": f"{url_for('static', filename='img/event.jpg', _external=True)}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
@@ -180,7 +180,7 @@ def handle_message(event):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": f"{url_for('static', filename='img/tickets.jpg')}",
+                        "url": f"{url_for('static', filename='img/tickets.jpg', _external=True)}",
                         "size": "full",
                         "aspectMode": "cover",
                         "aspectRatio": "320:213"
@@ -505,7 +505,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": f"{url_for('static', filename='tickets.jpg')}",
+                    "url": f"{url_for('static', filename='tickets.jpg', _external=True)}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"

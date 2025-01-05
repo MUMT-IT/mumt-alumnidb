@@ -60,7 +60,7 @@ def register_event(event_id):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": f"{url_for('static', filename='img/tickets.jpg')}",
+                        "url": f"{url_for('static', filename='img/tickets.jpg', _external=True)}",
                         "size": "full",
                         "aspectMode": "cover",
                         "aspectRatio": "320:213"
