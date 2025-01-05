@@ -48,11 +48,14 @@ def register_event(event_id):
             participant = EventParticipant(event_id=event_id)
             form.populate_obj(participant)
             db.session.add(participant)
+            event_ = Event.query.get(event_id)
             for i in range(form.number.data):
                 purchased_datetime = arrow.now('Asia/Bangkok').datetime
                 ticket = EventTicket(event_id=event_id, participant=participant, create_datetime=purchased_datetime)
-                ticket.generate_ticket_number(event)
+                event_.last_ticket_number += 1
+                ticket.ticket_number = f'{event_.id}-{event_.last_ticket_number:04d}'
                 db.session.add(ticket)
+                db.session.add(event_)
             db.session.commit()
             tickets = []
             for t in participant.purchased_tickets.filter_by(cancel_datetime=None):
@@ -60,7 +63,7 @@ def register_event(event_id):
                     "type": "bubble",
                     "hero": {
                         "type": "image",
-                        "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True)}",
+                        "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True, _scheme='https')}",
                         "size": "full",
                         "aspectMode": "cover",
                         "aspectRatio": "320:213"
@@ -389,10 +392,25 @@ def register_event(event_id):
 
 @event.route('/events/<int:event_id>/register-form/line-id/<line_id>', methods=['GET'])
 def load_register_form(event_id, line_id):
-    member = MemberInfo.query.filter_by(line_id=line_id).first()
-    form = ParticipantForm(obj=member)
-    return render_template('event/partials/register_form_part.html',
-                           form=form, event_id=event_id, line_id=line_id)
+    participant = EventParticipant.query.filter_by(line_id=line_id, event_id=event_id).first()
+    if participant:
+        add_ticket_url = url_for('event.add_ticket', event_id=event_id, participant_id=participant.id)
+        template = f"""
+            <h1 class='title has-text-centered'>คุณได้ลงทะเบียนแล้ว</h1>
+            <p>
+            คุณได้ทำการจองบัตรไว้เป็นจำนวน {participant.purchased_tickets.filter_by(cancel_datetime=None).count()} ใบ
+            </p>
+            <div class='buttons is-centered'>
+                <button onclick='closeLIFFWindow()' class='button is-medium'>ปิดหน้าต่าง</button>
+                <button hx-get='{add_ticket_url}' class='button is-medium is-info'>จองบัตรเพิ่ม</button>
+            </div>
+            """
+        return template
+    else:
+        member = MemberInfo.query.filter_by(line_id=line_id).first()
+        form = ParticipantForm(obj=member)
+        return render_template('event/partials/register_form_part.html',
+                               form=form, event_id=event_id, line_id=line_id)
 
 
 @event.route('/events/<int:event_id>/participants/<int:participant_id>/add-ticket', methods=['GET'])

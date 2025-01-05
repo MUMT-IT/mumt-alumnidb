@@ -15,6 +15,7 @@ class Event(db.Model):
     register_start_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันเปิดลงทะเบียน'})
     register_end_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันปิดลงทะเบียน'})
     ticket_price = db.Column(db.Numeric())
+    last_ticket_number = db.Column(db.Integer(), default=0, info={'label': 'หมายเลขบัตรสุดท้าย'})
 
     @property
     def detail(self):
@@ -68,11 +69,6 @@ class EventTicket(db.Model):
                              backref=db.backref('holding_ticket',
                                                 uselist=False,
                                                 cascade='all'))
-
-    def generate_ticket_number(self, event):
-        total_ticket = event.tickets.count()
-        ticket_number = total_ticket + 1
-        self.ticket_number = f'{event.id}-{ticket_number:04d}'
 
 
 class EventTicketPayment(db.Model):
