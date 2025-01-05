@@ -505,7 +505,7 @@ def handle_message(event):
                 "type": "bubble",
                 "hero": {
                     "type": "image",
-                    "url": f"{url_for('static', filename='tickets-resized.png', _external=True)}",
+                    "url": f"{url_for('static', filename='img/tickets-resized.png', _external=True)}",
                     "size": "full",
                     "aspectMode": "cover",
                     "aspectRatio": "320:213"
