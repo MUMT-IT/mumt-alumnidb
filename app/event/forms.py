@@ -1,7 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms.validators import DataRequired
 from wtforms_alchemy import model_form_factory
-from wtforms_components import IntegerField, StringField
+from wtforms_components import IntegerField
 
 from app import db
 from app.event.models import EventParticipant

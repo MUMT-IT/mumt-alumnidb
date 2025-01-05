@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Member Info{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="columns">
+    <div class="column">
+      <div id="form-body">
+          Loading a form...
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+  function closeLIFFWindow() {
+    liff.closeWindow();
+  }
+  liff.init({
+    liffId: "2006693395-RZwO4OEj", // Use own liffId
+    withLoginOnExternalBrowser: true,
+  }).then(function () {
+    let profile = liff.getDecodedIDToken();
+    htmx.ajax('GET', '/member/members/line-id/' + profile.sub + '/check-info', {target: '#form-body', swap: 'innerHTML'})
+  })
+  document.addEventListener('closeLIFFWindow', function () {
+    liff.closeWindow();
+  })
+</script>
+{% endblock %}
