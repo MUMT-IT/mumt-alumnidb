@@ -606,8 +606,9 @@ def check_ticket_holder(event_id, ticket_number, line_id):
         if not participant.holding_ticket:
             resp.headers['HX-Reswap'] = 'none'
         else:
-            resp.headers['HX-Redirect'] = url_for('event.show_ticket_detail', event_id=event_id,
-                                                  ticket_number=ticket_number)
+            resp.headers['HX-Redirect'] = url_for('event.show_ticket_detail',
+                                                  event_id=event_id,
+                                                  ticket_number=participant.holding_ticket.ticket_number)
         return resp
 
 
