@@ -8,17 +8,19 @@ import arrow
 import boto3
 from datetime import datetime
 
-from flask import render_template, flash, redirect, url_for, request, make_response, jsonify
+from flask import render_template, flash, redirect, url_for, request, make_response, jsonify, send_file
+from flask_wtf.csrf import generate_csrf
 from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
     FlexContainer
 from qrcode.main import QRCode
 from PIL import Image, ImageDraw, ImageFont
+from sqlalchemy.event import Events
 from sqlalchemy_utils.types.arrow import arrow
 
 from app import app
 from app.member.models import MemberInfo
 from app.event import event_blueprint as event
-from app.event.forms import ParticipantForm, TicketClaimForm
+from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form
 from app.event.models import *
 
 configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_TOKEN'))
@@ -47,6 +49,7 @@ def register_event(event_id):
         if not participant:
             participant = EventParticipant(event_id=event_id)
             form.populate_obj(participant)
+            participant.register_datetime = arrow.now('Asia/Bangkok').datetime
             db.session.add(participant)
             event_ = Event.query.get(event_id)
             for i in range(form.number.data):
@@ -618,6 +621,7 @@ def upload_payment_slip(event_id, participant_id):
         key = uuid.uuid4()
         s3_client.upload_fileobj(_file, os.environ.get('BUCKETEER_BUCKET_NAME'), str(key))
         payment = EventTicketPayment(participant_id=participant_id,
+                                     event_id=event_id,
                                      amount=float(amount),
                                      key=key,
                                      filename=filename)
@@ -637,3 +641,121 @@ def upload_payment_slip(event_id, participant_id):
     resp.headers['HX-Trigger'] = 'closeLIFFWindow'
     return resp
     # return redirect(url_for('line_api.confirm_payment', event_id=event_id, participant_id=participant_id))
+
+
+@event.route('/events')
+def all_events():
+    events = Event.query.order_by(Event.start_datetime.desc())
+    return render_template('event/admin/events.html', events=events)
+
+
+@event.route('/events/<int:event_id>/participants')
+def list_participants(event_id):
+    event = Event.query.get(event_id)
+    return render_template('event/admin/participants.html', event=event)
+
+
+@event.route('/payments/<int:payment_id>/payment-approve-batch', methods=['GET', 'POST'])
+def approve_payment_batch(payment_id):
+    payment = EventTicketPayment.query.get(payment_id)
+    ApprovePaymentForm = create_approve_payment_form(payment.participant)
+    form = ApprovePaymentForm()
+    if request.method == 'GET':
+        return render_template('event/admin/approve_payment_form.html', payment=payment, form=form)
+    if request.method == 'POST':
+        for ticket in form.tickets.data:
+            ticket.payment_datetime = payment.create_datetime
+            payment.approve_datetime = arrow.now('Asia/Bangkok').datetime
+            db.session.add(ticket)
+            db.session.add(payment)
+            db.session.commit()
+            with ApiClient(configuration) as api_client:
+                line_bot_api = MessagingApi(api_client)
+                push_message_request = PushMessageRequest(to=ticket.participant.line_id, messages=[
+                    TextMessage(text=f'อนุมัติการชำระเงินบัตรหมายเลข {ticket.ticket_number} แล้ว')])
+                try:
+                    api_response = line_bot_api.push_message(push_message_request)
+                except Exception as e:
+                    print(f'Exception while sending MessageApi->push_message {e}')
+            if ticket.holder and ticket.holder != ticket.participant:
+                with ApiClient(configuration) as api_client:
+                    line_bot_api = MessagingApi(api_client)
+                    push_message_request = PushMessageRequest(to=ticket.holder.line_id, messages=[
+                        TextMessage(text=f'อนุมัติการชำระเงินบัตรหมายเลข {ticket.ticket_number} แล้ว')])
+                    try:
+                        api_response = line_bot_api.push_message(push_message_request)
+                    except Exception as e:
+                        print(f'Exception while sending MessageApi->push_message {e}')
+        resp = make_response()
+        resp.headers['HX-Refresh'] = 'true'
+        return resp
+
+
+@event.route('/tickets/<int:ticket_id>/payment-approve', methods=['POST'])
+def approve_payment(ticket_id):
+    ticket = EventTicket.query.get(ticket_id)
+    ticket.payment_datetime = arrow.now('Asia/Bangkok').datetime
+    payment = EventTicketPayment(event_id=ticket.event_id,
+                                 create_datetime=ticket.payment_datetime,
+                                 participant=ticket.holder,
+                                 amount=ticket.event.ticket_price,
+                                 walkin=True,
+                                 approve_datetime=ticket.payment_datetime,
+                                 )
+    db.session.add(ticket)
+    db.session.add(payment)
+    db.session.commit()
+    line_id = ticket.holder.line_id if ticket.holder else ticket.participant.line_id
+    with ApiClient(configuration) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        push_message_request = PushMessageRequest(to=line_id, messages=[
+            TextMessage(text=f'อนุมัติการชำระเงินบัตรหมายเลข {ticket.ticket_number} แล้ว')])
+        try:
+            api_response = line_bot_api.push_message(push_message_request)
+        except Exception as e:
+            print(f'Exception while sending MessageApi->push_message {e}')
+    checkin_url = url_for('event.checkin_ticket', ticket_id=ticket.id)
+    template = f'''
+    <a class="button is-rounded is-success"
+        hx-indicator="this"
+        hx-swap="outerHTML"
+        hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
+        hx-headers='{{"X-CSRF-Token": "{generate_csrf()}"}}'
+        hx-post="{checkin_url}">
+    เช็คอินเข้างาน
+    </a>
+    '''
+    return template
+
+
+@event.route('/tickets/<int:ticket_id>/checkin', methods=['POST'])
+def checkin_ticket(ticket_id):
+    ticket = EventTicket.query.get(ticket_id)
+    ticket.checkin_datetime = arrow.now('Asia/Bangkok').datetime
+    db.session.add(ticket)
+    db.session.commit()
+    return ticket.checkin_datetime.strftime('%d/%m/%Y %X')
+
+
+@event.route('/events/<int:event_id>/payments')
+def list_payments(event_id):
+    event = Event.query.get(event_id)
+    return render_template('event/admin/payments.html', event=event)
+
+
+@event.route('/ticket-payments/<int:participant_id>/check')
+def check_payment(participant_id):
+    participant = EventParticipant.query.get(participant_id)
+    return render_template('event/admin/check_payment.html', participant=participant)
+
+
+@event.route('/ticket-payments/slip-download/<key>')
+def download_file(key):
+    download_filename = request.args.get('download_filename')
+    s3_client = boto3.client('s3', aws_access_key_id=os.environ.get('BUCKETEER_AWS_ACCESS_KEY_ID'),
+                             aws_secret_access_key=os.environ.get('BUCKETEER_AWS_SECRET_ACCESS_KEY'),
+                             region_name=os.environ.get('BUCKETEER_AWS_REGION'))
+    outfile = io.BytesIO()
+    s3_client.download_fileobj(os.environ.get('BUCKETEER_BUCKET_NAME'), key, outfile)
+    outfile.seek(0)
+    return send_file(outfile, download_name=download_filename, as_attachment=True)

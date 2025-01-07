@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_admin import Admin
 from dotenv import load_dotenv
+from flask_wtf import CSRFProtect
 
 load_dotenv()
 
@@ -18,6 +19,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 admin = Admin(app)
+csrf = CSRFProtect(app)
 
 
 from app.main import main_blueprint

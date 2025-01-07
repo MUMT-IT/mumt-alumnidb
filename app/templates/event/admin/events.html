@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="columns">
+    <div class="column">
+      <h1 class="title">รายการกิจกรรม</h1>
+      <table class="table is-bordered is-fullwidth">
+        <thead>
+        <th>ชื่อกิจกรรม</th>
+        <th>เวลา</th>
+        <th>สถานที่</th>
+        </thead>
+        {% for event in events %}
+        <tr>
+          <td><a href="{{url_for('event.list_participants', event_id=event.id)}}">{{event.name}}</a></td>
+          <td>{{event.time}}</td>
+          <td>{{event.location}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

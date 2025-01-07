@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="columns">
+    <div class="column">
+      <h1 class="title">รายการชำระเงิน</h1>
+      <table class="table is-bordered is-fullwidth">
+        <thead>
+        <th>ชื่อผู้จอง</th>
+        <th>เวลาที่จอง</th>
+        <th>เวลาที่ส่งข้อมูล</th>
+        <th>จำนวนเงินที่ชำระ</th>
+        <th>ยอดคงค้าง</th>
+        <th>จำนวนบัตรค้างชำระ</th>
+        </thead>
+        {% for payment in event.ticket_payments %}
+        <tr>
+          <td>
+            <a href="{{url_for('event.check_payment', participant_id=payment.participant.id)}}">
+            {{payment.participant}}
+            </a>
+          </td>
+          <td>{{payment.participant.register_datetime|localdatetime}}</td>
+          <td>{{payment.create_datetime|localdatetime}}</td>
+          <td>
+            {{payment.amount}}
+          </td>
+          <th>
+            <span class="has-text-danger">
+              {{payment.participant.total_amount_due}}</th>
+            </span>
+          <td>
+            {{payment.participant.purchased_tickets.filter_by(payment_datetime=None).count()}}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      <a href="{{url_for('event.list_participants', event_id=event.id)}}" class="button is-rounded">Back</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

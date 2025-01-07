@@ -30,6 +30,7 @@
                             เลขบัญชี 3332784687
                         </p>
                         <form hx-post="{{url_for('event.upload_payment_slip', event_id=event.id, participant_id=participant.id)}}"
+                              hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
                               hx-swap="none"
                               hx-indicator="#submitBtn"
                               enctype="multipart/form-data">
