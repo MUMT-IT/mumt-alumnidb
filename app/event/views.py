@@ -8,6 +8,7 @@ import arrow
 import boto3
 from datetime import datetime
 
+import pytz
 from flask import render_template, flash, redirect, url_for, request, make_response, jsonify, send_file
 from flask_wtf.csrf import generate_csrf
 from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
@@ -570,7 +571,8 @@ def show_ticket_detail(event_id, ticket_number):
     I.text((440, 1000), f'เลขบัตร {ticket.ticket_number}', fill=(0, 0, 0), font=ticket_font)
     holder_name = f'{ticket.holder.title}{ticket.holder.firstname}\n{ticket.holder.lastname}' if ticket.holder else 'ยังไม่ได้ลงทะเบียนผู้ถืิอบัตร'
     I.text((440, 1100), holder_name, fill=(0, 0, 0), font=name_font)
-    payment_datetime = ticket.payment_datetime.strftime("%d/%m/%Y %X") if ticket.payment_datetime else 'pending'
+    bangkok = pytz.timezone('Asia/Bangkok')
+    payment_datetime = ticket.payment_datetime.astimezone(bangkok).strftime("%d/%m/%Y %X") if ticket.payment_datetime else 'pending'
     I.text((440, 1300), f'PAYMENT {payment_datetime}', fill=(0, 0, 0), font=name_font)
 
     qr = QRCode(version=1, box_size=20, border=2)
