@@ -36,11 +36,12 @@ from app.event import event_blueprint
 
 app.register_blueprint(event_blueprint)
 
-from app.event.models import Event, EventParticipant, EventTicket
+from app.event.models import Event, EventParticipant, EventTicket, EventTicketPayment
 
 admin.add_view(ModelView(Event, db.session, category='Event', endpoint='event-admin'))
 admin.add_view(ModelView(EventParticipant, db.session, category='Event'))
 admin.add_view(ModelView(EventTicket, db.session, category='Event'))
+admin.add_view(ModelView(EventTicketPayment, db.session, category='Event'))
 
 from app.line_api import line_api_blueprint
 
