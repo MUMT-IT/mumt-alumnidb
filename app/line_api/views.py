@@ -6,7 +6,7 @@ import arrow
 from flask import request, abort, url_for
 from pytz import timezone
 
-from app import app, db
+from app import app, db, csrf
 from app.line_api import line_api_blueprint as api
 from app.event.models import Event, EventTicket, EventParticipant
 
@@ -33,6 +33,7 @@ handler = WebhookHandler(os.environ.get('LINE_MESSAGE_CHANNEL_SECRET'))
 
 
 @api.route("/callback", methods=['POST'])
+@csrf.exempt
 def callback():
     # get X-Line-Signature header value
     signature = request.headers['X-Line-Signature']

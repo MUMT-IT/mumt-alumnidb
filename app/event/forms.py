@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms.fields.simple import BooleanField
-from wtforms_alchemy import model_form_factory
+from wtforms.widgets.core import CheckboxInput, ListWidget
+from wtforms_alchemy import model_form_factory, QuerySelectField, QuerySelectMultipleField
 from wtforms_components import IntegerField, SelectField
 
 from app import db
@@ -28,3 +29,12 @@ class ParticipantForm(ModelForm):
 class TicketClaimForm(ModelForm):
     class Meta:
         model = EventParticipant
+
+
+def create_approve_payment_form(participant: EventParticipant):
+    class ApprovePaymentForm(ModelForm):
+        tickets = QuerySelectMultipleField('Tickets', query_factory=lambda: participant.purchased_tickets.filter_by(payment_datetime=None),
+                                           widget=ListWidget(prefix_label=False),
+                                           get_label='ticket_number',
+                                           option_widget=CheckboxInput())
+    return ApprovePaymentForm

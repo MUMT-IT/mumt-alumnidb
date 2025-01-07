@@ -1,0 +1,40 @@
+<div class="modal is-active animate__animated" id="ticket-claim-modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Approve Payment</p>
+            <button type="button" id="cancelButton" class="delete" aria-label="close"></button>
+        </header>
+        <form hx-post="{{ url_for('event.approve_payment_batch', payment_id=payment.id) }}"
+              hx-indicator="#submitBtn"
+        >
+            {{ form.hidden_tag() }}
+            <section class="modal-card-body">
+                <div class="field">
+                    <label class="label">{{ form.tickets.label }}</label>
+                    <div class="control">
+                        {{ form.tickets() }}
+                    </div>
+                </div>
+            </section>
+            <footer class="modal-card-foot">
+                <div class="buttons">
+                    <button class="button is-light" id="cancel-btn">Cancel</button>
+                    <button class="button is-success" id="submitBtn">Submit</button>
+                </div>
+            </footer>
+        </form>
+    </div>
+</div>
+<script>
+    window.document.getElementById("cancel-btn").addEventListener("click", function (event) {
+        event.preventDefault()
+        htmx.removeClass(htmx.find('#ticket-claim-modal'), 'is-active')
+    })
+    window.document.getElementById("cancelButton").addEventListener("click", function () {
+        htmx.removeClass(htmx.find('#ticket-claim-modal'), 'is-active')
+    })
+    window.addEventListener('closeModal', (evt) => {
+        htmx.removeClass(htmx.find('#ticket-claim-modal'), 'is-active')
+    })
+</script>
