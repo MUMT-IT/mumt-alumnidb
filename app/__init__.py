@@ -1,13 +1,14 @@
 import os
 from pytz import timezone
 
-from flask import Flask
+from flask import Flask, url_for, redirect
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_admin import Admin
+from flask_admin import Admin, AdminIndexView
 from dotenv import load_dotenv
 from flask_wtf import CSRFProtect
+from flask_login import LoginManager, current_user
 
 load_dotenv()
 
@@ -16,15 +17,36 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def _handle_view(self, name, **kwargs):
+        if not self.is_accessible():
+            return redirect(url_for('main.login'))
+
+
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-admin = Admin(app)
+admin = Admin(app, index_view=MyAdminIndexView())
 csrf = CSRFProtect(app)
+login_manager = LoginManager(app)
 
+login_manager.login_view = 'main.login'
 
 from app.main import main_blueprint
 
 app.register_blueprint(main_blueprint)
+from app.main.models import User
+
+admin.add_view(ModelView(User, db.session, category='User'))
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
 
 from app.member import member_blueprint
 

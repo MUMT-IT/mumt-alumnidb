@@ -10,6 +10,7 @@ from datetime import datetime
 
 import pytz
 from flask import render_template, flash, redirect, url_for, request, make_response, jsonify, send_file
+from flask_login import login_required
 from flask_wtf.csrf import generate_csrf
 from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
     FlexContainer
@@ -647,18 +648,21 @@ def upload_payment_slip(event_id, participant_id):
 
 
 @event.route('/events')
+@login_required
 def all_events():
     events = Event.query.order_by(Event.start_datetime.desc())
     return render_template('event/admin/events.html', events=events)
 
 
 @event.route('/events/<int:event_id>/participants')
+@login_required
 def list_participants(event_id):
     event = Event.query.get(event_id)
     return render_template('event/admin/participants.html', event=event)
 
 
 @event.route('/payments/<int:payment_id>/payment-approve-batch', methods=['GET', 'POST'])
+@login_required
 def approve_payment_batch(payment_id):
     payment = EventTicketPayment.query.get(payment_id)
     ApprovePaymentForm = create_approve_payment_form(payment.participant)
@@ -695,6 +699,7 @@ def approve_payment_batch(payment_id):
 
 
 @event.route('/tickets/<int:ticket_id>/payment-approve', methods=['POST'])
+@login_required
 def approve_payment(ticket_id):
     ticket = EventTicket.query.get(ticket_id)
     ticket.payment_datetime = arrow.now('Asia/Bangkok').datetime
@@ -732,6 +737,7 @@ def approve_payment(ticket_id):
 
 
 @event.route('/tickets/<int:ticket_id>/checkin', methods=['POST'])
+@login_required
 def checkin_ticket(ticket_id):
     ticket = EventTicket.query.get(ticket_id)
     ticket.checkin_datetime = arrow.now('Asia/Bangkok').datetime
@@ -741,12 +747,14 @@ def checkin_ticket(ticket_id):
 
 
 @event.route('/events/<int:event_id>/payments')
+@login_required
 def list_payments(event_id):
     event = Event.query.get(event_id)
     return render_template('event/admin/payments.html', event=event)
 
 
 @event.route('/ticket-payments/<int:participant_id>/check')
+@login_required
 def check_payment(participant_id):
     participant = EventParticipant.query.get(participant_id)
     return render_template('event/admin/check_payment.html', participant=participant)
