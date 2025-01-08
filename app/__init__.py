@@ -8,6 +8,7 @@ from flask_migrate import Migrate
 from flask_admin import Admin
 from dotenv import load_dotenv
 from flask_wtf import CSRFProtect
+from flask_login import LoginManager
 
 load_dotenv()
 
@@ -20,11 +21,21 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 admin = Admin(app)
 csrf = CSRFProtect(app)
+login_manager = LoginManager(app)
 
+login_manager.login_view = 'main.login'
 
 from app.main import main_blueprint
 
 app.register_blueprint(main_blueprint)
+from app.main.models import User
+admin.add_view(ModelView(User, db.session, category='User'))
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
+
 
 from app.member import member_blueprint
 
