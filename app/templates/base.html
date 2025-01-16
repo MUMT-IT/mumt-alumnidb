@@ -13,6 +13,20 @@
 <body>
 {% block content %}
 {% endblock %}
+<footer class="footer">
+    <div class="container">
+        {% if config['DEBUG'] %}
+        <article class="message is-warning">
+            <div class="message-header">
+                DEBUG MODE
+            </div>
+            <div class="message-body">
+                <strong>Template file:</strong> {{ self._TemplateReference__context.name }}
+            </div>
+        </article>
+        {% endif %}
+    </div>
+</footer>
 {% block scripts %}
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
