@@ -770,3 +770,37 @@ def download_file(key):
     s3_client.download_fileobj(os.environ.get('BUCKETEER_BUCKET_NAME'), key, outfile)
     outfile.seek(0)
     return send_file(outfile, download_name=download_filename, as_attachment=True)
+
+
+@event.route('/admin/events/<int:event_id>/participants/register', methods=['GET', 'POST'])
+@login_required
+def admin_register_participant(event_id):
+    form = ParticipantForm()
+    event = Event.query.get(event_id)
+    if form.validate_on_submit():
+        participant = EventParticipant(event_id=event_id)
+        form.populate_obj(participant)
+        if form.group.data == 'ศิษย์เก่า' and form.consent.data:
+            member = MemberInfo()
+            form.populate_obj(member)
+            db.session.add(member)
+        for i in range(form.number.data):
+            purchased_datetime = arrow.now('Asia/Bangkok').datetime
+            ticket = EventTicket(event_id=event_id, participant=participant, create_datetime=purchased_datetime)
+            event.last_ticket_number += 1
+            ticket.ticket_number = f'{event.id}-{event.last_ticket_number:04d}'
+            db.session.add(ticket)
+            db.session.add(event)
+        db.session.commit()
+        flash('ลงทะเบียนเรียบร้อยแล้ว กรุณาชำระเงินค่าบัตร', 'success')
+        return redirect(url_for('event.check_payment', participant_id=participant.id))
+    return render_template('event/admin/register_form.html', form=form, event=event)
+
+
+@event.route('/admin/participants/<int:participant_id>/payment/new', methods=['GET', 'POST'])
+@login_required
+def admin_add_payment_record(participant_id):
+    if request.method == 'GET':
+        return render_template('event/admin/modals/payment_form.html',
+                               participant_id=participant_id)
+

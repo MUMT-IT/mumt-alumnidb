@@ -46,11 +46,11 @@ class EventParticipant(db.Model):
 
     @property
     def total_balance(self):
-        return len([ticket for ticket in self.purchased_tickets]) * self.event.ticket_price
+        return len([ticket for ticket in self.purchased_tickets.filter_by(cancel_datetime=None)]) * self.event.ticket_price
 
     @property
     def total_amount_due(self):
-        return self.total_balance - (len([ticket for ticket in self.purchased_tickets if ticket.payment_datetime]) * self.event.ticket_price)
+        return self.total_balance - (len([ticket for ticket in self.purchased_tickets.filter_by(cancel_datetime=None) if ticket.payment_datetime]) * self.event.ticket_price)
 
 
 class EventTicket(db.Model):
@@ -61,7 +61,10 @@ class EventTicket(db.Model):
     event = db.relationship('Event', backref=db.backref('tickets', lazy='dynamic', cascade='all, delete-orphan'))
     participant_id = db.Column(db.Integer(), db.ForeignKey('event_participants.id'))
     participant = db.relationship('EventParticipant', foreign_keys=[participant_id],
-                                  backref=db.backref('purchased_tickets', lazy='dynamic', cascade='all, delete-orphan'))
+                                  backref=db.backref('purchased_tickets',
+                                                     lazy='dynamic',
+                                                     order_by='EventTicket.create_datetime',
+                                                     cascade='all, delete-orphan'))
     create_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่จอง'})
     payment_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่จ่ายเงิน'})
     cancel_datetime = db.Column(db.DateTime(timezone=True), info={'label': 'วันที่ยกเลิก'})

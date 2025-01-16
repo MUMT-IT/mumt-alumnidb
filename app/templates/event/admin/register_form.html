@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="columns">
+      <div class="column">
+        <h1 class="title has-text-centered">
+          {{event.name}}
+        </h1>
+        <h1 class="subtitle has-text-centered">
+          {{event.detail}}
+        </h1>
+      </div>
+    </div>
+    <div class="columns">
+      <div class="column is-half is-offset-3">
+        <form method="post">
+          {{form.hidden_tag()}}
+          <div class="field">
+            <label class="label">{{form.title.label}}</label>
+            <div class="control">
+              {{form.title(class="input")}}
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">{{form.firstname.label}}</label>
+            <div class="control">
+              {{form.firstname(class="input is-danger")}}
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">{{form.lastname.label}}</label>
+            <div class="control">
+              {{form.lastname(class="input is-danger")}}
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">{{form.telephone.label}}</label>
+            <div class="control">
+              {{form.telephone(class="input")}}
+              <p class="help is-info">สำหรับติดต่อในกรณีจำเป็น</p>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">{{form.group.label}}</label>
+            <div class="select">
+              {{form.group()}}
+            </div>
+          </div>
+          <div class="field">
+            <label class="checkbox">
+              {{form.consent()}}
+              ข้าพเจ้ายินยอมให้บันทึกข้อมูลส่วนตัวในฐานข้อมูลศิษย์เก่า (สำหรับศิษย์เก่า)
+            </label>
+          </div>
+          <p class="help"></p>
+          <div class="field">
+            <label class="label">{{form.number.label}}ที่ต้องการจอง</label>
+            <div class="control">
+              {{form.number(class="input")}}
+            </div>
+          </div>
+          <div class="field is-grouped is-centered">
+            <div class="control">
+              <a class="button">Cancel</a>
+              <input type="submit" value="Submit" class="button is-success"/>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

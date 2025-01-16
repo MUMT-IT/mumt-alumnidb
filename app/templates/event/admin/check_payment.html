@@ -39,18 +39,27 @@
         {% endfor %}
         </tbody>
       </table>
+      <div id="payment-form"></div>
+      <div class="buttons is-centered">
+        <a hx-get="{{url_for('event.admin_add_payment_record', participant_id=participant.id)}}"
+           hx-target="#payment-form"
+           hx-swap="innerHTML"
+           class="button is-rounded is-link">เพิ่มรายการชำระเงิน</a>
+      </div>
       <div id="form-modal"></div>
       <h2 class="titlbe is-size-4">รายการบัตรที่จอง</h2>
       <table class="table is-fullwidth">
         <thead>
         <th>หมายเลขบัตร</th>
         <th>ผู้ถือบัตร</th>
+        <th>วันเวลาที่จอง</th>
         <th>ชำระเงิน</th>
         </thead>
         {% for ticket in participant.purchased_tickets %}
         <tr>
           <td>{{ticket.ticket_number}}</td>
           <td>{{ticket.holder or ''}}</td>
+          <td>{{ticket.create_datetime|localdatetime}}</td>
           <td>
             {{ticket.payment_datetime|localdatetime}}
           </td>
