@@ -1,0 +1,52 @@
+<div class="modal is-active animate__animated" id="payment-modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Add Ticket Payment</p>
+      <button type="button" id="cancelButton" class="delete" aria-label="close"></button>
+    </header>
+    <form method="post" action="{{url_for('event.admin_add_payment_record', participant_id=participant_id)}}" enctype="multipart/form-data">
+      <input type="hidden" value="{{csrf_token()}}" name="csrf_token">
+      <section class="modal-card-body">
+        <div class="field">
+          <label class="label">จำนวนเงิน</label>
+          <div class="control">
+            <input type="number" step="any" class="input" name="amount"/>
+          </div>
+        </div>
+        <div class="field">
+          <div id="file" class="file is-normal is-boxed has-name">
+            <label class="file-label">
+              <input class="file-input is-danger" required type="file" name="file"/>
+              <span class="file-cta">
+                <span class="file-icon">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                </span>
+                <span class="file-label">คลิกเพื่ออัพโหลด Payment Slip… </span>
+              </span>
+              <span class="file-name"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <div class="buttons">
+          <button class="button is-light" id="cancel-btn">Cancel</button>
+          <input type="submit" value="Submit" class="button is-success" id="save-btn"/>
+        </div>
+      </footer>
+    </form>
+  </div>
+</div>
+<script>
+  window.document.getElementById("cancel-btn").addEventListener("click", function (event) {
+    event.preventDefault()
+    htmx.removeClass(htmx.find('#payment-modal'), 'is-active')
+  })
+  window.document.getElementById("cancelButton").addEventListener("click", function () {
+    htmx.removeClass(htmx.find('#payment-modal'), 'is-active')
+  })
+  window.addEventListener('closeModal', (evt) => {
+    htmx.removeClass(htmx.find('#payment-modal'), 'is-active')
+  })
+</script>
