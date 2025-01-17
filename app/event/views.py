@@ -677,7 +677,7 @@ def approve_payment_batch(payment_id):
             db.session.add(ticket)
             db.session.add(payment)
             db.session.commit()
-            if not current_app.debug:
+            if not current_app.debug and ticket.participant.line_id:
                 with ApiClient(configuration) as api_client:
                     line_bot_api = MessagingApi(api_client)
                     push_message_request = PushMessageRequest(to=ticket.participant.line_id, messages=[
@@ -715,7 +715,7 @@ def approve_payment(ticket_id):
     db.session.add(ticket)
     db.session.add(payment)
     db.session.commit()
-    if not current_app.debug:
+    if not current_app.debug and ticket.holder.line_id:
         line_id = ticket.holder.line_id if ticket.holder else ticket.participant.line_id
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
