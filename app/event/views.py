@@ -16,6 +16,7 @@ from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, Te
     FlexContainer
 from qrcode.main import QRCode
 from PIL import Image, ImageDraw, ImageFont
+from sqlalchemy import or_
 from sqlalchemy.event import Events
 from sqlalchemy_utils.types.arrow import arrow
 
@@ -752,7 +753,16 @@ def checkin_ticket(ticket_id):
 @login_required
 def list_payments(event_id):
     event = Event.query.get(event_id)
-    return render_template('event/admin/payments.html', event=event)
+    approved = request.args.get('approved', 'no')
+    ticket_payments = event.ticket_payments
+    if approved == 'yes':
+        ticket_payments = ticket_payments.filter(EventTicketPayment.approve_datetime!=None)
+    else:
+        ticket_payments = ticket_payments.filter_by(approve_datetime=None)
+    return render_template('event/admin/payments.html',
+                           event=event,
+                           ticket_payments=ticket_payments,
+                           approved=approved)
 
 
 @event.route('/ticket-payments/<int:participant_id>/check')
@@ -829,3 +839,102 @@ def admin_add_payment_record(participant_id):
         return resp
 
 
+@event.route('/admin/payments/<int:payment_id>/note', methods=['GET', 'POST'])
+@login_required
+def admin_add_payment_note(payment_id):
+    payment = EventTicketPayment.query.get(payment_id)
+    if request.method == 'POST':
+        form = request.form
+        payment.note = form.get('note')
+        db.session.add(payment)
+        db.session.commit()
+        resp = make_response()
+        resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=payment.participant_id)
+        return resp
+    return render_template('event/admin/modals/payment_note_form.html', payment_id=payment_id)
+
+
+@event.route('/admin/tickets/<int:ticket_id>/claim', methods=['GET', 'POST'])
+@login_required
+def admin_add_ticket_holder(ticket_id, holder_id=None):
+    form = TicketClaimForm()
+    ticket = EventTicket.query.get(ticket_id)
+    holder_id = request.args.get('holder_id', type=int)
+    if request.method == 'POST':
+        if holder_id:
+            holder = EventParticipant.query.get(holder_id)
+            if holder.holding_ticket:
+                holding_ticket = holder.holding_ticket
+                holding_ticket.holder = None
+                db.session.add(holding_ticket)
+            ticket.holder_id = holder_id
+            db.session.add(ticket)
+            db.session.commit()
+            resp = make_response()
+            resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=ticket.participant_id)
+            return resp
+        else:
+            holder = EventParticipant(event_id=ticket.event_id)
+            form.populate_obj(holder)
+            ticket.holder = holder
+            db.session.add(holder)
+            db.session.add(ticket)
+            db.session.commit()
+            resp = make_response()
+            resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=ticket.participant_id)
+            return resp
+    return render_template('event/admin/claim_ticket.html', form=form, ticket=ticket)
+
+
+@event.route('/admin/events/<int:event_id>/participants/search')
+@login_required
+def search_participant(event_id):
+    ticket_id = request.args.get('ticket_id', type=int)
+    query = request.args.get('name')
+    matches = 0
+    template = '''
+    <thead>
+    <th>คำนำหน้า</th>
+    <th>ชื่อ</th>
+    <th>นามสกุล</th>
+    <th>บัตร</th>
+    <th></th>
+    </thead>
+    <tbody>
+    '''
+    if query:
+        for p in EventParticipant.query.filter_by(event_id=event_id)\
+                .filter(or_(EventParticipant.firstname.like(f'%{query}%'),
+                            EventParticipant.lastname.like(f'%{query}%'))):
+            url = url_for('event.admin_add_ticket_holder', ticket_id=ticket_id, holder_id=p.id)
+            matches += 1
+            template += f'''
+           <tr>
+           <td>{p.title}</td>
+           <td>{p.firstname}</td>
+           <td>{p.lastname}</td>
+           <td>{p.holding_ticket.ticket_number if p.holding_ticket else "ไม่มีบัตร"}</td>
+           <td><a hx-post="{url}" class="button is-rounded" hx-headers='{{"X-CSRF-Token": "{ generate_csrf() }" }}' hx-confirm="ท่านแน่ใจว่าจะเคลมบัตรนี้ บัตรเดิมถ้ามีอยู่จะถูกยกเลิกการถือครองโดยอัตโนมัติ">add</a>
+           </tr>
+           '''
+    template += '</tbody>'
+    if matches > 0:
+        return template
+    else:
+        return 'No matches.'
+
+
+@event.route('/admin/participants/<int:participant_id>/add-ticket', methods=['POST'])
+@login_required
+def admin_add_ticket(participant_id):
+    participant = EventParticipant.query.get(participant_id)
+    event = participant.event
+    purchased_datetime = arrow.now('Asia/Bangkok').datetime
+    ticket = EventTicket(event_id=event.id, participant=participant, create_datetime=purchased_datetime)
+    event.last_ticket_number += 1
+    ticket.ticket_number = f'{event.id}-{event.last_ticket_number:04d}'
+    db.session.add(ticket)
+    db.session.commit()
+    resp = make_response()
+    resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=participant.id)
+    return resp

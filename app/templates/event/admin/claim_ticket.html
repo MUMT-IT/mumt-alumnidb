@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Ticket Claim{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="columns">
+    <div class="column is-half is-offset-3">
+      <h1 class="title is-size-4 has-text-centered">{{ticket.event.name}}</h1>
+      <h1 class="subtitle is-size-5 has-text-centered">Ticket Claim</h1>
+      <div class="notification">
+        <div class="field">
+          <label class="label">หมายเลขบัตร</label>
+          <div class="control">
+            <input value="{{ticket.ticket_number}}" readonly class="input">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">ผู้จอง</label>
+          <div class="control">
+            <input value="{{ticket.participant}}" readonly class="input">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">ค้นหาผู้ลงทะเบียน</label>
+        <div class="control">
+          <input placeholder="ค้นหาด้วยชื่อหรือนามสกุล"
+                 name="name"
+                 hx-trigger="input changed delay:100ms"
+                 hx-get="{{url_for('event.search_participant', event_id=ticket.event_id, ticket_id=ticket.id)}}"
+                 hx-target="#par-table"
+                 class="input is-large">
+        </div>
+      </div>
+      <table id="par-table" class="table is-fullwidth is-striped">
+      </table>
+      <form hx-indicator="#submit-btn"
+            hx-post="{{ url_for('event.admin_add_ticket_holder', ticket_id=ticket.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="field">
+          <input type="hidden" name="line_id" value="" required/>
+          <div class="field">
+            <label class="label">{{form.title.label}}</label>
+            <div class="control">
+              {{form.title(class="input")}}
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">{{form.firstname.label}}</label>
+            <div class="control">
+              {{form.firstname(class="input is-danger")}}
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">{{form.lastname.label}}</label>
+            <div class="control">
+              {{form.lastname(class="input is-danger")}}
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">{{form.telephone.label}}</label>
+            <div class="control">
+              {{form.telephone(class="input")}}
+              <p class="help is-info">สำหรับติดต่อในกรณีจำเป็น</p>
+            </div>
+          </div>
+          <div class="field is-grouped is-centered">
+            <div class="control">
+              <a href="{{url_for('event.check_payment', participant_id=ticket.participant_id)}}" class="button is-medium">Cancel</a>
+            </div>
+            <div class="control">
+              <button id="submit-btn" type="submit" class="button is-success is-medium">Submit</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

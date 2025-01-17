@@ -4,7 +4,8 @@
 <section class="section">
   <div class="columns">
     <div class="column">
-      <h1 class="title">รายการชำระเงิน</h1>
+      <h1 class="title">{{participant.event.name}}</h1>
+      <h1 class="subtitle">รายการชำระเงิน</h1>
       <table class="table is-bordered is-fullwidth">
         <thead>
         <th>ชื่อผู้ชำระเงิน</th>
@@ -12,6 +13,7 @@
         <th>เวลาส่งหลักฐาน</th>
         <th>Slip</th>
         <th>ตรวจสอบแล้วเมื่อ</th>
+        <th>หมายเหตุ</th>
         </thead>
         <tbody>
         {% for payment in participant.payments %}
@@ -32,8 +34,18 @@
             {% else %}
             <a hx-target="#form-modal"
                hx-swap="innerHTML"
-               hx-get="{{url_for('event.approve_payment_batch', payment_id=payment.id)}}">Approve</a>
+               hx-get="{{url_for('event.approve_payment_batch', payment_id=payment.id)}}"
+               class="button is-success is-rounded"
+            >Approve</a>
+            <a hx-target="#form-modal"
+               hx-swap="innerHTML"
+               hx-get="{{url_for('event.admin_add_payment_note', payment_id=payment.id)}}"
+               class="button is-warning is-rounded"
+            >Note</a>
             {% endif %}
+          </td>
+          <td>
+            {{payment.note or ""}}
           </td>
         </tr>
         {% endfor %}
@@ -45,6 +57,12 @@
            hx-target="#payment-form"
            hx-swap="innerHTML"
            class="button is-rounded is-link">เพิ่มรายการชำระเงิน</a>
+        <a hx-post="{{url_for('event.admin_add_ticket', participant_id=participant.id)}}"
+           hx-target="#payment-form"
+           hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+           hx-swap="innerHTML"
+           hx-confirm="ท่านแน่ใจว่าต้องการจองบัตรเพิ่ม"
+           class="button is-rounded is-light is-link">เพิ่มบัตร</a>
       </div>
       <div id="form-modal"></div>
       <h2 class="titlbe is-size-4">รายการบัตรที่จอง</h2>
@@ -58,7 +76,19 @@
         {% for ticket in participant.purchased_tickets %}
         <tr>
           <td>{{ticket.ticket_number}}</td>
-          <td>{{ticket.holder or ''}}</td>
+          <td>
+            {% if ticket.holder %}
+            {{ticket.holder}}
+            {% else %}
+            <a href="{{url_for('event.admin_add_ticket_holder', ticket_id=ticket.id)}}"
+               class="button is-rounded">
+              <span class="icon">
+                <i class="fa-solid fa-user-plus"></i>
+              </span>
+              <span>add</span>
+            </a>
+            {% endif %}
+          </td>
           <td>{{ticket.create_datetime|localdatetime}}</td>
           <td>
             {{ticket.payment_datetime|localdatetime}}
@@ -66,7 +96,10 @@
         </tr>
         {% endfor %}
       </table>
-      <a href="{{url_for('event.list_payments', event_id=participant.event_id)}}" class="button is-rounded">Back</a>
+      <div class="buttons">
+        <a href="{{url_for('event.list_participants', event_id=participant.event_id)}}" class="button is-rounded is-primary">Home</a>
+        <a href="{{url_for('event.list_payments', event_id=participant.event_id)}}" class="button is-rounded">Back</a>
+      </div>
     </div>
   </div>
 </section>

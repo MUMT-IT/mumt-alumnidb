@@ -4,8 +4,9 @@
 <section class="section">
   <div class="columns">
     <div class="column">
-      <h1 class="title">รายชื่อผู้ลงทะเบียน</h1>
-      <table class="table is-bordered is-fullwidth">
+      <h1 class="title">{{event.name}}</h1>
+      <h1 class="subtitle">รายชื่อผู้ลงทะเบียน</h1>
+      <table id="table" class="table is-bordered is-fullwidth">
         <thead>
         <th>ชื่อ</th>
         <th>เวลาลงทะเบียน</th>
@@ -13,9 +14,10 @@
         <th>เวลาชำระเงิน</th>
         <th>เวลาเช็คอิน</th>
         </thead>
+        <tbody>
         {% for participant in event.participants %}
         <tr>
-          <td>{{participant}}</td>
+          <td><a href="{{url_for('event.check_payment', participant_id=participant.id)}}">{{participant}}</a></td>
           <td>{{participant.register_datetime|localdatetime}}</td>
           <td>
             {% if participant.holding_ticket.ticket_number %}
@@ -25,10 +27,12 @@
             {% endif %}
           </td>
           <td>
-            {% if participant.holding_ticket.payment_datetime %}
-            {{participant.holding_ticket.payment_datetime|localdatetime}}
-            {% else %}
-            ยังไม่ชำระเงิน
+            {% if participant.holding_ticket %}
+              {% if participant.holding_ticket.payment_datetime %}
+                {{participant.holding_ticket.payment_datetime|localdatetime}}
+              {% else %}
+                ยังไม่ชำระเงิน
+              {% endif %}
             {% endif %}
           </td>
           <td>
@@ -58,6 +62,7 @@
           </td>
         </tr>
         {% endfor %}
+        </tbody>
       </table>
     </div>
   </div>
@@ -71,4 +76,12 @@
     </div>
   </div>
 </section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+  $(document).ready(function () {
+    new DataTable('#table')
+  })
+</script>
 {% endblock %}

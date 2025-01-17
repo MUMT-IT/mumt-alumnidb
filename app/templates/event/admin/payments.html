@@ -4,17 +4,25 @@
 <section class="section">
   <div class="columns">
     <div class="column">
-      <h1 class="title">รายการชำระเงิน</h1>
-      <table class="table is-bordered is-fullwidth">
+      <h1 class="title">{{event.name}}</h1>
+      <h1 class="subtitle">รายการชำระเงิน</h1>
+      <div class="tabs is-boxed">
+        <ul>
+          <li {% if approved == "no" %} class="is-active" {% endif %}><a href="{{url_for('event.list_payments', event_id=event.id)}}">ยังไม่อนุมัติ</a></li>
+          <li {% if approved == "yes" %} class="is-active" {% endif %}><a href="{{url_for('event.list_payments', event_id=event.id, approved='yes')}}">อนุมัติแล้ว</a></li>
+        </ul>
+      </div>
+      <table id="table" class="table is-bordered is-fullwidth">
         <thead>
         <th>ชื่อผู้จอง</th>
         <th>เวลาที่จอง</th>
         <th>เวลาที่ส่งข้อมูล</th>
         <th>จำนวนเงินที่ชำระ</th>
-        <th>ยอดคงค้าง</th>
-        <th>จำนวนบัตรค้างชำระ</th>
+        <th>เวลาอนุมัติ</th>
+        <th>หมายเหตุ</th>
         </thead>
-        {% for payment in event.ticket_payments %}
+        <tbody>
+        {% for payment in ticket_payments %}
         <tr>
           <td>
             <a href="{{url_for('event.check_payment', participant_id=payment.participant.id)}}">
@@ -26,18 +34,26 @@
           <td>
             {{payment.amount}}
           </td>
-          <th>
-            <span class="has-text-danger">
-              {{payment.participant.total_amount_due}}</th>
-            </span>
           <td>
-            {{payment.participant.purchased_tickets.filter_by(payment_datetime=None).count()}}
+            {{payment.approve_datetime|localdatetime}}
+          </td>
+          <td>
+            {{payment.note or ""}}
           </td>
         </tr>
         {% endfor %}
+        </tbody>
       </table>
       <a href="{{url_for('event.list_participants', event_id=event.id)}}" class="button is-rounded">Back</a>
     </div>
   </div>
 </section>
+{% endblock %}
+{% block scripts %}
+{{super()}}
+<script>
+  $(document).ready(function () {
+    new DataTable('#table')
+  })
+</script>
 {% endblock %}

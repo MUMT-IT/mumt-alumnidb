@@ -1,0 +1,39 @@
+<div class="modal is-active animate__animated" id="payment-note-modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Add Ticket Payment Note</p>
+      <button type="button" id="cancelButton" class="delete" aria-label="close"></button>
+    </header>
+    <form hx-post="{{url_for('event.admin_add_payment_note', payment_id=payment_id)}}"
+          hx-indicator="#submit-btn">
+      <input type="hidden" value="{{csrf_token()}}" name="csrf_token">
+      <section class="modal-card-body">
+        <div class="field">
+          <label class="label">หมายเหตุ</label>
+          <div class="control">
+            <textarea class="textarea" name="note"></textarea>
+          </div>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <div class="buttons">
+          <button class="button is-light" id="cancel-btn">Cancel</button>
+          <button type="submit" class="button is-success" id="submit-btn">Submit</button>
+        </div>
+      </footer>
+    </form>
+  </div>
+</div>
+<script>
+  window.document.getElementById("cancel-btn").addEventListener("click", function (event) {
+    event.preventDefault()
+    htmx.removeClass(htmx.find('#payment-note-modal'), 'is-active')
+  })
+  window.document.getElementById("cancelButton").addEventListener("click", function () {
+    htmx.removeClass(htmx.find('#payment-note-modal'), 'is-active')
+  })
+  window.addEventListener('closeModal', (evt) => {
+    htmx.removeClass(htmx.find('#payment-note-modal'), 'is-active')
+  })
+</script>
