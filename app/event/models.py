@@ -74,6 +74,7 @@ class EventTicket(db.Model):
                                                 uselist=False,
                                                 cascade='all'))
     checkin_datetime = db.Column(db.DateTime(timezone=True))
+    note = db.Column(db.String(), info={'label': 'Note'})
 
 
 class EventTicketPayment(db.Model):

@@ -18,7 +18,13 @@
         <tbody>
         {% for payment in participant.payments %}
         <tr>
-          <td>{{participant}}</td>
+          <td>{{participant}}
+            <a hx-get="{{url_for('event.admin_edit_participant', participant_id=participant.id)}}" hx-target="#form-modal" hx-swap="innerHTML">
+              <span class="icon">
+                <i class="fa-solid fa-pencil"></i>
+              </span>
+            </a>
+          </td>
           <td>{{payment.amount}}</td>
           <td>{{payment.create_datetime|localdatetime}}</td>
           <td>
@@ -46,6 +52,13 @@
           </td>
           <td>
             {{payment.note or ""}}
+            <a hx-target="#form-modal"
+               hx-swap="innerHTML"
+               hx-get="{{url_for('event.admin_add_payment_note', payment_id=payment.id)}}">
+              <span class="icon">
+                <i class="fa-solid fa-pencil"></i>
+              </span>
+            </a>
           </td>
         </tr>
         {% endfor %}
@@ -72,6 +85,7 @@
         <th>ผู้ถือบัตร</th>
         <th>วันเวลาที่จอง</th>
         <th>ชำระเงิน</th>
+        <th>หมายเหตุ</th>
         </thead>
         {% for ticket in participant.purchased_tickets %}
         <tr>
@@ -79,6 +93,19 @@
           <td>
             {% if ticket.holder %}
             {{ticket.holder}}
+            <a hx-get="{{url_for('event.admin_edit_participant', participant_id=ticket.holder_id)}}" hx-target="#form-modal" hx-swap="innerHTML">
+              <span class="icon">
+                <i class="fa-solid fa-pencil"></i>
+              </span>
+            </a>
+            <a hx-delete="{{url_for('event.admin_release_ticket', ticket_id=ticket.id)}}"
+               hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+               hx-confirm="ท่านต้องการปล่อยบัตรนี้หรือไม่"
+               hx-target="#form-modal" hx-swap="innerHTML">
+              <span class="icon">
+                <i class="fa-solid fa-trash-can has-text-danger"></i>
+              </span>
+            </a>
             {% else %}
             <a href="{{url_for('event.admin_add_ticket_holder', ticket_id=ticket.id)}}"
                class="button is-rounded">
@@ -92,6 +119,14 @@
           <td>{{ticket.create_datetime|localdatetime}}</td>
           <td>
             {{ticket.payment_datetime|localdatetime}}
+          </td>
+          <td>
+            {{ticket.note or ''}}
+            <a hx-get="{{url_for('event.admin_edit_ticket', ticket_id=ticket.id)}}" hx-target="#form-modal" hx-swap="innerHTML">
+              <span class="icon">
+                <i class="fa-solid fa-pencil"></i>
+              </span>
+            </a>
           </td>
         </tr>
         {% endfor %}
