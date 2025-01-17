@@ -80,7 +80,10 @@ class EventTicketPayment(db.Model):
     __tablename__ = 'event_ticket_payments'
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     event_id = db.Column(db.Integer(), db.ForeignKey('events.id'))
-    event = db.relationship('Event', backref=db.backref('ticket_payments', lazy='dynamic', cascade='all, delete-orphan'))
+    event = db.relationship('Event', backref=db.backref('ticket_payments',
+                                                        order_by='EventTicketPayment.create_datetime',
+                                                        lazy='dynamic',
+                                                        cascade='all, delete-orphan'))
     participant_id = db.Column(db.Integer(), db.ForeignKey('event_participants.id'))
     participant = db.relationship('EventParticipant', foreign_keys=[participant_id],
                                   backref=db.backref('payments', lazy='dynamic', cascade='all, delete-orphan'))
@@ -90,3 +93,4 @@ class EventTicketPayment(db.Model):
     amount = db.Column(db.Numeric(), info={'label': 'จำนวนเงิน'})
     walkin = db.Column(db.Boolean(), default=False)
     approve_datetime = db.Column(db.DateTime(timezone=True))
+    note = db.Column(db.Text())

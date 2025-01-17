@@ -8,11 +8,26 @@
           integrity="sha512-RpeJZX3aH5oZN3U3JhE7Sd+HG8XQsqmP3clIbu4G28p668yNsRNj3zMASKe1ATjl/W80wuEtCx2dFA8xaebG5w=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.datatables.net/v/bm/dt-2.2.1/datatables.min.css" rel="stylesheet">
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
 {% block content %}
 {% endblock %}
+<footer class="footer">
+    <div class="container">
+        {% if config['DEBUG'] %}
+        <article class="message is-warning">
+            <div class="message-header">
+                DEBUG MODE
+            </div>
+            <div class="message-body">
+                <strong>Template file:</strong> {{ self._TemplateReference__context.name }}
+            </div>
+        </article>
+        {% endif %}
+    </div>
+</footer>
 {% block scripts %}
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.3/sdk.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
@@ -31,6 +46,7 @@
         });
     });
 </script>
+<script src="https://cdn.datatables.net/v/bm/dt-2.2.1/datatables.min.js"></script>
 {% endblock %}
 </body>
 </html>
