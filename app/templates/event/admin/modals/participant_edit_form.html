@@ -1,0 +1,57 @@
+<div class="modal is-active animate__animated" id="participant-modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Participant Edit Form</p>
+      <button type="button" id="cancelButton" class="delete" aria-label="close"></button>
+    </header>
+    <form hx-post="{{url_for('event.admin_edit_participant', participant_id=participant_id)}}"
+          hx-indicator="#submit-btn">
+      {{form.hidden_tag()}}
+      <section class="modal-card-body">
+        <div class="field">
+          <label class="label">{{form.title.label}}</label>
+          <div class="control">
+            {{form.title(class="input")}}
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">{{form.firstname.label}}</label>
+          <div class="control">
+            {{form.firstname(class="input is-danger")}}
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">{{form.lastname.label}}</label>
+          <div class="control">
+            {{form.lastname(class="input is-danger")}}
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">{{form.telephone.label}}</label>
+          <div class="control">
+            {{form.telephone(class="input")}}
+          </div>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <div class="buttons">
+          <button class="button is-light" id="cancel-btn">Cancel</button>
+          <button type="submit" class="button is-success" id="submit-btn">Submit</button>
+        </div>
+      </footer>
+    </form>
+  </div>
+</div>
+<script>
+  window.document.getElementById("cancel-btn").addEventListener("click", function (event) {
+    event.preventDefault()
+    htmx.removeClass(htmx.find('#participant-modal'), 'is-active')
+  })
+  window.document.getElementById("cancelButton").addEventListener("click", function () {
+    htmx.removeClass(htmx.find('#participant-modal'), 'is-active')
+  })
+  window.addEventListener('closeModal', (evt) => {
+    htmx.removeClass(htmx.find('#participant-modal'), 'is-active')
+  })
+</script>

@@ -5,7 +5,7 @@ from wtforms_alchemy import model_form_factory, QuerySelectField, QuerySelectMul
 from wtforms_components import IntegerField, SelectField
 
 from app import db
-from app.event.models import EventParticipant
+from app.event.models import EventParticipant, EventTicket
 
 BaseModelForm = model_form_factory(FlaskForm)
 
@@ -24,6 +24,16 @@ class ParticipantForm(ModelForm):
     group = SelectField('ประเภท',
                         choices=[(c, c) for c in ('ศิษย์เก่า', 'ศิษย์ปัจจุบัน', 'บุคคลทั่วไป')])
     consent = BooleanField('ยินยอมให้บันทึกข้อมูล', default=False)
+
+
+class ParticipantEditForm(ModelForm):
+    class Meta:
+        model = EventParticipant
+
+
+class TicketForm(ModelForm):
+    class Meta:
+        model = EventTicket
 
 
 class TicketClaimForm(ModelForm):

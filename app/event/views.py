@@ -23,7 +23,8 @@ from sqlalchemy_utils.types.arrow import arrow
 from app import app
 from app.member.models import MemberInfo
 from app.event import event_blueprint as event
-from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form
+from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form, ParticipantEditForm, \
+    TicketForm
 from app.event.models import *
 
 configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_TOKEN'))
@@ -938,3 +939,46 @@ def admin_add_ticket(participant_id):
     resp = make_response()
     resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=participant.id)
     return resp
+
+
+@event.route('/admin/participants/<int:participant_id>/edit', methods=['POST', 'GET'])
+@login_required
+def admin_edit_participant(participant_id):
+    participant = EventParticipant.query.get(participant_id)
+    form = ParticipantEditForm(obj=participant)
+    if form.validate_on_submit():
+        form.populate_obj(participant)
+        db.session.add(participant)
+        db.session.commit()
+        resp = make_response()
+        resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=participant_id)
+        return resp
+    return render_template('event/admin/modals/participant_edit_form.html', form=form, participant_id=participant_id)
+
+
+@event.route('/admin/tickets/<int:ticket_id>/edit', methods=['POST', 'GET'])
+@login_required
+def admin_edit_ticket(ticket_id):
+    ticket = EventTicket.query.get(ticket_id)
+    form = TicketForm(obj=ticket)
+    if form.validate_on_submit():
+        form.populate_obj(ticket)
+        db.session.add(ticket)
+        db.session.commit()
+        resp = make_response()
+        resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=ticket.participant_id)
+        return resp
+    return render_template('event/admin/modals/ticket_edit_form.html', form=form, ticket_id=ticket.id)
+
+
+@event.route('/admin/tickets/<int:ticket_id>/release', methods=['DELETE'])
+@login_required
+def admin_release_ticket(ticket_id):
+    ticket = EventTicket.query.get(ticket_id)
+    ticket.holder = None
+    db.session.add(ticket)
+    db.session.commit()
+    resp = make_response()
+    resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=ticket.participant_id)
+    return resp
+
