@@ -8,7 +8,7 @@
             </figure>
             <div class="buttons is-centered">
                 <button class="button" id="cancel-btn">Close</button>
-                <a class="button is-success" href="{{url_for('member.edit_member_info', ticket_no=ticket_no)}}">
+                <a class="button is-success" href="{{url_for('member.edit_member_info_from_ticket_holder', ticket_no=ticket_no, method='manual')}}">
                 <span class="icon">
                     <i class="fas fa-pencil-alt"></i>
                 </span>
