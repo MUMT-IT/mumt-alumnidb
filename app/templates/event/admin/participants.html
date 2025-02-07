@@ -6,6 +6,7 @@
     <div class="column">
       <h1 class="title">{{event.name}}</h1>
       <h1 class="subtitle">รายชื่อผู้ลงทะเบียน</h1>
+      <div id="modal"></div>
       <table id="table" class="table is-bordered is-fullwidth">
         <thead>
         <th>ชื่อ</th>
@@ -37,6 +38,12 @@
           </td>
           <td>
             {% if participant.holding_ticket %}
+            <a class="button is-rounded is-success"
+               hx-target="#modal"
+               hx-indicator="this"
+               hx-swap="innerHTML"
+               hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=participant.holding_ticket.ticket_number)}}"
+              >อัพเดตข้อมูล</a>
               {% if participant.holding_ticket.checkin_datetime %}
               {{participant.holding_ticket.checkin_datetime|localdatetime}}
               {% else %}
