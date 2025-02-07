@@ -22,7 +22,7 @@ configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_T
 @login_required
 def create_qrcode_for_member_info_edit_from_ticket(ticket_no):
     buffer = io.BytesIO()
-    img = qrcode.make(url_for('member.edit_member_info_from_ticket_holder',
+    img = qrcode.make(url_for('member.edit_member_info',
                               ticket_no=ticket_no, _external=True, _scheme='https'))
     img.save(buffer, format="PNG")
     qrcode_data = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
@@ -30,9 +30,8 @@ def create_qrcode_for_member_info_edit_from_ticket(ticket_no):
                            qrcode_data=qrcode_data, ticket_no=ticket_no)
 
 
-@member.route('/info/edit/tickets/<ticket_no>', methods=['GET', 'POST'])
-def edit_member_info_from_ticket_holder(ticket_no):
-    method = request.args.get('method', 'manual')
+@member.route('/admin/member/info/edit/tickets/<ticket_no>', methods=['GET', 'POST'])
+def admin_edit_member_info_from_ticket_holder(ticket_no):
     form = MemberInfoForm()
     ticket = EventTicket.query.filter_by(ticket_number=ticket_no).first()
     member = None
@@ -50,11 +49,8 @@ def edit_member_info_from_ticket_holder(ticket_no):
                                   lastname=ticket.holder.lastname,
                                   telephone=ticket.holder.telephone,
                                   title=ticket.holder.title)
-        if method == 'manual':
-            return render_template('member/member_info_manual_edit_form.html',
-                                   form=form, event_id=ticket.event_id, line_id=line_id)
-        else:
-            return render_template('member/member_info_form.html')
+        return render_template('member/member_info_manual_edit_form.html',
+                               form=form, event_id=ticket.event_id, line_id=line_id)
 
     if request.method == 'POST':
         if form.validate_on_submit():
