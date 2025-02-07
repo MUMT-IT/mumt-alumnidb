@@ -22,8 +22,8 @@ configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_T
 @login_required
 def create_qrcode_for_member_info_edit_from_ticket(ticket_no):
     buffer = io.BytesIO()
-    img = qrcode.make(url_for('member.edit_member_info',
-                              ticket_no=ticket_no, _external=True, _scheme='https'))
+    url = f'https://liff.line.me/2006693395-RZwO4OEj/{url_for("member.edit_member_info", ticket_no=ticket_no)}'
+    img = qrcode.make(url)
     img.save(buffer, format="PNG")
     qrcode_data = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
     return render_template('member/modals/edit_member_info_qrcode.html',
