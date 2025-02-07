@@ -101,7 +101,7 @@ def load_member_info_form(line_id):
         form = MemberInfoForm(obj=member)
     else:
         if ticket_no:
-            ticket = EventTicket.query.filter_by(number=ticket_no).first()
+            ticket = EventTicket.query.filter_by(ticket_number=ticket_no).first()
             if ticket and ticket.holder:
                 form = MemberInfoForm(firstname=ticket.holder.firstname,
                                       lastname=ticket.holder.lastname,
