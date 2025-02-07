@@ -24,7 +24,7 @@
     withLoginOnExternalBrowser: true,
   }).then(function () {
     let profile = liff.getDecodedIDToken();
-    htmx.ajax('GET', '/member/members/line-id/' + profile.sub + '/check-info?ticket_no=' + {{ticket_no|tojson|safe}}, {target: '#form-body', swap: 'innerHTML'})
+    htmx.ajax('GET', '/member/members/line-id/' + profile.sub + '/check-info?ticket_no=' + "{{ticket_no|tojson|safe}}", {target: '#form-body', swap: 'innerHTML'})
   })
   document.addEventListener('closeLIFFWindow', function () {
     liff.closeWindow();
