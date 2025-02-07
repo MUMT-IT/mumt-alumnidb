@@ -1,0 +1,32 @@
+<div class="modal is-active" id="qrcode-modal">
+    <div class="modal-background"></div>
+    <div class="modal-content has-text-centered">
+        <div class="box">
+            <p class="subtitle">แสกน QR Code ด้วย Line Application เพื่อแก้ไขข้อมูลส่วนตัว</p>
+            <figure class="image is-inline-block">
+                <img src="{{qrcode_data}}"/>
+            </figure>
+            <div class="buttons is-centered">
+                <button class="button" id="cancel-btn">Close</button>
+                <a class="button is-success" href="{{url_for('member.edit_member_info', ticket_no=ticket_no)}}">
+                <span class="icon">
+                    <i class="fas fa-pencil-alt"></i>
+                </span>
+                    <span>Edit</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.document.getElementById("cancel-btn").addEventListener("click", function (event) {
+        event.preventDefault()
+        htmx.removeClass(htmx.find('#qrcode-modal'), 'is-active')
+    })
+    window.document.getElementById("cancelButton").addEventListener("click", function () {
+        htmx.removeClass(htmx.find('#qrcode-modal'), 'is-active')
+    })
+    window.addEventListener('closeModal', (evt) => {
+        htmx.removeClass(htmx.find('#qrcode-modal'), 'is-active')
+    })
+</script>
