@@ -14,6 +14,7 @@
         <th>หมายเลขบัตร</th>
         <th>เวลาชำระเงิน</th>
         <th>เวลาเช็คอิน</th>
+        <th>ข้อมูลสมาชิก</th>
         </thead>
         <tbody>
         {% for participant in event.participants %}
@@ -38,12 +39,6 @@
           </td>
           <td>
             {% if participant.holding_ticket %}
-            <a class="button is-rounded is-success"
-               hx-target="#modal"
-               hx-indicator="this"
-               hx-swap="innerHTML"
-               hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=participant.holding_ticket.ticket_number)}}"
-              >อัพเดตข้อมูล</a>
               {% if participant.holding_ticket.checkin_datetime %}
               {{participant.holding_ticket.checkin_datetime|localdatetime}}
               {% else %}
@@ -65,6 +60,16 @@
                 {% endif %}
               {% endif %}
             {% else %}
+            {% endif %}
+          </td>
+          <td>
+            {% if participant.holding_ticket %}
+            <a class="button is-rounded is-info"
+               hx-target="#modal"
+               hx-indicator="this"
+               hx-swap="innerHTML"
+               hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=participant.holding_ticket.ticket_number)}}"
+            >อัพเดต</a>
             {% endif %}
           </td>
         </tr>
