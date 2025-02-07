@@ -1,4 +1,5 @@
 import base64
+import csv
 import io
 import os
 import uuid
@@ -9,7 +10,8 @@ import boto3
 from datetime import datetime
 
 import pytz
-from flask import render_template, flash, redirect, url_for, request, make_response, jsonify, send_file, current_app
+from flask import render_template, flash, redirect, url_for, request, make_response, jsonify, send_file, current_app, \
+    Response
 from flask_login import login_required
 from flask_wtf.csrf import generate_csrf
 from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, TextMessage, Configuration, FlexMessage, \
@@ -981,4 +983,22 @@ def admin_release_ticket(ticket_id):
     resp = make_response()
     resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=ticket.participant_id)
     return resp
+
+
+@event.route('/admin/<int:event_id>/participants/export')
+def admin_export_participants(event_id):
+    event = Event.query.get(event_id)
+    data = []
+    for ticket in event.tickets:
+        if ticket.holder and ticket.payment_datetime:
+            data.append({
+                'name': f'{ticket.holder.firstname} {ticket.holder.lastname} {ticket.note or ""}',
+            })
+
+    buffer = io.StringIO()
+    csv_writer = csv.DictWriter(buffer, fieldnames=['name'])
+    csv_writer.writerows(data)
+    return Response(buffer.getvalue(), mimetype='text/plain')
+
+
 
