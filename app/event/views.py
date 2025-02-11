@@ -53,7 +53,6 @@ def search(event_id):
                                                    EventTicket.note.ilike(f'%{query}')))
             if tickets.count():
                 return render_template('event/admin/partials/tickets.html', tickets=tickets)
-    form = SearchForm()
     return render_template('event/admin/search_form.html', form=form, event=event)
 
 
