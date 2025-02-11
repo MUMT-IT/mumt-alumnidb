@@ -53,7 +53,7 @@ def search(event_id):
                                                    EventTicket.note.ilike(f'%{query}')))
             if tickets.count():
                 return render_template('event/admin/partials/tickets.html', tickets=tickets)
-    return render_template('event/admin/search_form.html', form=form, event=event)
+    return render_template('event/admin/search_form.html', event=event)
 
 
 @event.route('/events/<int:event_id>/register', methods=['GET', 'POST'])
