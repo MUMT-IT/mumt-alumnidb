@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms.fields.simple import BooleanField
 from wtforms.widgets.core import CheckboxInput, ListWidget
-from wtforms_alchemy import model_form_factory, QuerySelectField, QuerySelectMultipleField
+from wtforms_alchemy import model_form_factory, QuerySelectMultipleField
 from wtforms_components import IntegerField, SelectField
 
 from app import db
@@ -48,3 +48,4 @@ def create_approve_payment_form(participant: EventParticipant):
                                            get_label='ticket_number',
                                            option_widget=CheckboxInput())
     return ApprovePaymentForm
+
