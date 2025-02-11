@@ -26,7 +26,7 @@ from app import app
 from app.member.models import MemberInfo
 from app.event import event_blueprint as event
 from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form, ParticipantEditForm, \
-    TicketForm
+    TicketForm, SearchForm
 from app.event.models import *
 
 configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_TOKEN'))
@@ -36,6 +36,26 @@ configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_T
 def list_upcoming_events():
     events = Event.query.filter(Event.start_datetime >= datetime.now()).all()
     return render_template('event/upcoming.html', events=events)
+
+
+@event.route('/events/<int:event_id>/search')
+def search(event_id):
+    event = Event.query.get(event_id)
+    if request.headers.get('HX-Request') == 'true':
+        query = request.args.get('query')
+        filtered_participants = EventParticipant.query.filter(or_(EventParticipant.firstname.ilike(f'%{query}%'),
+                                                                  EventParticipant.lastname.ilike(f'%{query}%'),
+                                                                  ))
+        if filtered_participants.count():
+            return render_template('event/admin/partials/participants_by_name.html',
+                                   filtered_participants=filtered_participants)
+        else:
+            tickets = EventTicket.query.filter(or_(EventTicket.ticket_number.ilike(f'%{query}%'),
+                                                   EventTicket.note.ilike(f'%{query}')))
+            if tickets.count():
+                return render_template('event/admin/partials/tickets.html', tickets=tickets)
+    form = SearchForm()
+    return render_template('event/admin/search_form.html', form=form, event=event)
 
 
 @event.route('/events/<int:event_id>/register', methods=['GET', 'POST'])
@@ -577,7 +597,8 @@ def show_ticket_detail(event_id, ticket_number):
     holder_name = f'{ticket.holder.title}{ticket.holder.firstname}\n{ticket.holder.lastname}' if ticket.holder else 'ยังไม่ได้ลงทะเบียนผู้ถืิอบัตร'
     I.text((440, 1100), holder_name, fill=(0, 0, 0), font=name_font)
     bangkok = pytz.timezone('Asia/Bangkok')
-    payment_datetime = ticket.payment_datetime.astimezone(bangkok).strftime("%d/%m/%Y %X") if ticket.payment_datetime else 'pending'
+    payment_datetime = ticket.payment_datetime.astimezone(bangkok).strftime(
+        "%d/%m/%Y %X") if ticket.payment_datetime else 'pending'
     I.text((440, 1300), f'PAYMENT {payment_datetime}', fill=(0, 0, 0), font=name_font)
 
     qr = QRCode(version=1, box_size=20, border=2)
@@ -759,7 +780,7 @@ def list_payments(event_id):
     approved = request.args.get('approved', 'no')
     ticket_payments = event.ticket_payments
     if approved == 'yes':
-        ticket_payments = ticket_payments.filter(EventTicketPayment.approve_datetime!=None)
+        ticket_payments = ticket_payments.filter(EventTicketPayment.approve_datetime != None)
     else:
         ticket_payments = ticket_payments.filter_by(approve_datetime=None)
     return render_template('event/admin/payments.html',
@@ -906,7 +927,7 @@ def search_participant(event_id):
     <tbody>
     '''
     if query:
-        for p in EventParticipant.query.filter_by(event_id=event_id)\
+        for p in EventParticipant.query.filter_by(event_id=event_id) \
                 .filter(or_(EventParticipant.firstname.like(f'%{query}%'),
                             EventParticipant.lastname.like(f'%{query}%'))):
             url = url_for('event.admin_add_ticket_holder', ticket_id=ticket_id, holder_id=p.id)
@@ -917,7 +938,7 @@ def search_participant(event_id):
            <td>{p.firstname}</td>
            <td>{p.lastname}</td>
            <td>{p.holding_ticket.ticket_number if p.holding_ticket else "ไม่มีบัตร"}</td>
-           <td><a hx-post="{url}" class="button is-rounded" hx-headers='{{"X-CSRF-Token": "{ generate_csrf() }" }}' hx-confirm="ท่านแน่ใจว่าจะเคลมบัตรนี้ บัตรเดิมถ้ามีอยู่จะถูกยกเลิกการถือครองโดยอัตโนมัติ">add</a>
+           <td><a hx-post="{url}" class="button is-rounded" hx-headers='{{"X-CSRF-Token": "{generate_csrf()}" }}' hx-confirm="ท่านแน่ใจว่าจะเคลมบัตรนี้ บัตรเดิมถ้ามีอยู่จะถูกยกเลิกการถือครองโดยอัตโนมัติ">add</a>
            </tr>
            '''
     template += '</tbody>'
@@ -999,6 +1020,3 @@ def admin_export_participants(event_id):
     csv_writer = csv.DictWriter(buffer, fieldnames=['name'])
     csv_writer.writerows(data)
     return Response(buffer.getvalue(), mimetype='text/plain')
-
-
-

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="columns">
+    <div class="column">
+      <h1 class="title">{{event.name}}</h1>
+      <div class="field">
+        <div class="control has-icons-right">
+          <input name="query"
+                 hx-indicator="closest div"
+                 hx-trigger="input changed delay:500ms"
+                 hx-get="{{url_for('event.search', event_id=event.id)}}"
+                 hx-swap="innerHTML"
+                 hx-target="#table"
+                 class="input is-large is-rounded", placeholder="ค้นหาด้วยชื่อ นามสกุลหรือหมายเลขบัตร">
+          <span class="icon is-right">
+            <i class="fas fa-search"></i>
+          </span>
+        </div>
+      </div>
+      <div id="modal"></div>
+      <div id="table"></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

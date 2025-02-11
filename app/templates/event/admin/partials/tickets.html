@@ -1,0 +1,58 @@
+<table class="table is-fullwidth">
+  <thead>
+  <th>หมายเลขบัตร</th>
+  <th>ชื่อผู้ถือบัตร</th>
+  <th>ชื่อผู้จองบัตร</th>
+  <th>เวลาชำระเงิน</th>
+  <th>เวลาเช็คอิน</th>
+  <th>ข้อมูลสมาชิก</th>
+  </thead>
+  <tbody>
+    {% for ticket in tickets %}
+    <tr>
+      <td>
+        {{ticket.ticket_number}} {% if ticket.note %}<span class="tag is-warning">{{ticket.note}}</span> {% endif %}
+      </td>
+      <td>{{ticket.holder}}</td>
+      <td><a href="{{url_for('event.check_payment', participant_id=ticket.participant.id)}}">{{ticket.participant}}</a></td>
+      <td>
+        {% if ticket.payment_datetime %}
+        {{ticket.payment_datetime|localdatetime}}
+        {% else %}
+        ยังไม่ชำระเงิน
+        {% endif %}
+      </td>
+      <td>
+        {% if ticket.checkin_datetime %}
+        {{ticket.checkin_datetime|localdatetime}}
+        {% else %}
+        {% if ticket.payment_datetime %}
+        <a class="button is-rounded is-success"
+           hx-indicator="this"
+           hx-swap="outerHTML"
+           hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
+           hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+           hx-post="{{url_for('event.checkin_ticket', ticket_id=ticket.id)}}"
+        >เช็คอิน</a>
+        {% else %}
+        <a class="button is-rounded is-danger"
+           hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+           hx-swap="outerHTML"
+           hx-confirm="คุณแน่ใจว่าต้องการอนุมัติการชำระเงิน"
+           hx-indicator="this"
+           hx-post="{{url_for('event.approve_payment', ticket_id=ticket.id)}}">อนุมัติการชำระเงิน</a>
+        {% endif %}
+        {% endif %}
+      </td>
+      <td>
+        <a class="button is-rounded is-info"
+           hx-target="#modal"
+           hx-indicator="this"
+           hx-swap="innerHTML"
+           hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=ticket.ticket_number)}}"
+        >อัพเดต</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

@@ -84,6 +84,7 @@
         <a href="{{url_for('event.all_events')}}" class="button is-rounded">Back</a>
         <a href="{{url_for('event.admin_register_participant', event_id=event.id)}}" class="button is-info is-rounded">ลงทะเบียน</a>
         <a href="{{url_for('event.list_payments', event_id=event.id)}}" class="button is-link is-rounded">ตรวจสอบการชำระเงิน</a>
+        <a href="{{url_for('event.search', event_id=event.id)}}" class="button is-warning is-rounded">ค้นหา</a>
         <a class="button is-rounded" href="{{ url_for('event.admin_export_participants', event_id=event.id) }}">
           <span class="icon">
             <i class="fas fa-file-download"></i>

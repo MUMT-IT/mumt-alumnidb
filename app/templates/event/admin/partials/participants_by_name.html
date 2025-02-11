@@ -1,0 +1,69 @@
+<table class="table is-fullwidth">
+  <thead>
+  <th>ชื่อ</th>
+  <th>เวลาลงทะเบียน</th>
+  <th>หมายเลขบัตร</th>
+  <th>เวลาชำระเงิน</th>
+  <th>เวลาเช็คอิน</th>
+  <th>ข้อมูลสมาชิก</th>
+  </thead>
+  <tbody>
+  {% for participant in filtered_participants %}
+  <tr>
+    <td><a href="{{url_for('event.check_payment', participant_id=participant.id)}}">{{participant}}</a></td>
+    <td>{{participant.register_datetime|localdatetime}}</td>
+    <td>
+      {% if participant.holding_ticket.ticket_number %}
+      {{participant.holding_ticket.ticket_number}} {% if participant.holding_ticket.note %}<span class="tag is-warning">{{participant.holding_ticket.note}}</span> {% endif %}
+      {% else %}
+      ไม่มีบัตร
+      {% endif %}
+    </td>
+    <td>
+      {% if participant.holding_ticket %}
+      {% if participant.holding_ticket.payment_datetime %}
+      {{participant.holding_ticket.payment_datetime|localdatetime}}
+      {% else %}
+      ยังไม่ชำระเงิน
+      {% endif %}
+      {% endif %}
+    </td>
+    <td>
+      {% if participant.holding_ticket %}
+      {% if participant.holding_ticket.checkin_datetime %}
+      {{participant.holding_ticket.checkin_datetime|localdatetime}}
+      {% else %}
+      {% if participant.holding_ticket.payment_datetime %}
+      <a class="button is-rounded is-success"
+         hx-indicator="this"
+         hx-swap="outerHTML"
+         hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
+         hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+         hx-post="{{url_for('event.checkin_ticket', ticket_id=participant.holding_ticket.id)}}"
+      >เช็คอิน</a>
+      {% else %}
+      <a class="button is-rounded is-danger"
+         hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+         hx-swap="outerHTML"
+         hx-confirm="คุณแน่ใจว่าต้องการอนุมัติการชำระเงิน"
+         hx-indicator="this"
+         hx-post="{{url_for('event.approve_payment', ticket_id=participant.holding_ticket.id)}}">อนุมัติการชำระเงิน</a>
+      {% endif %}
+      {% endif %}
+      {% else %}
+      {% endif %}
+    </td>
+    <td>
+      {% if participant.holding_ticket %}
+      <a class="button is-rounded is-info"
+         hx-target="#modal"
+         hx-indicator="this"
+         hx-swap="innerHTML"
+         hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=participant.holding_ticket.ticket_number)}}"
+      >อัพเดต</a>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
