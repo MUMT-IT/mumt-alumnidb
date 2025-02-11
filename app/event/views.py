@@ -25,8 +25,7 @@ from sqlalchemy_utils.types.arrow import arrow
 from app import app
 from app.member.models import MemberInfo
 from app.event import event_blueprint as event
-from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form, ParticipantEditForm, \
-    TicketForm, SearchForm
+from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form, ParticipantEditForm, TicketForm
 from app.event.models import *
 
 configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_TOKEN'))
