@@ -23,7 +23,7 @@ LIFF_URL = os.environ.get('LIFF_URL')
 def create_qrcode_for_member_info_edit_from_ticket(ticket_no):
     buffer = io.BytesIO()
     url = url_for("member.admin_edit_member_info_from_ticket_holder",
-                  ticket_no=ticket_no, _external=True, _scheme="https")
+                  editor="self", ticket_no=ticket_no, _external=True, _scheme="https")
     img = qrcode.make(url)
     img.save(buffer, format="PNG")
     qrcode_data = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
