@@ -14,7 +14,7 @@
         <strong class="is-size-4">
           {{ticket.ticket_number}}
         </strong>
-        {% if ticket.note %}<span class="tag is-warning">{{ticket.note}}</span> {% endif %}
+        {% if ticket.note %}<span class="tag is-medium is-warning">{{ticket.note}}</span> {% endif %}
       </td>
       <td>{{ticket.holder}}</td>
       <td><a href="{{url_for('event.check_payment', participant_id=ticket.participant.id)}}">{{ticket.participant}}</a></td>
@@ -34,7 +34,6 @@
           <a class="button is-rounded is-success"
              hx-indicator="this"
              hx-swap="outerHTML"
-             hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
              hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
              hx-post="{{url_for('event.checkin_ticket', ticket_id=ticket.id)}}"
           >เช็คอิน</a>
@@ -50,7 +49,10 @@
            hx-indicator="this"
            hx-swap="innerHTML"
            hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=ticket.ticket_number)}}"
-        >อัพเดต</a>
+        >
+          <span class="icon"><i class="fas fa-user-edit"></i></span>
+          <span>อัพเดต</span>
+        </a>
       </td>
     </tr>
     {% endfor %}

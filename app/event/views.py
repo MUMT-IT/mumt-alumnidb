@@ -10,6 +10,7 @@ import boto3
 from datetime import datetime
 
 import pytz
+import qrcode
 from flask import render_template, flash, redirect, url_for, request, make_response, jsonify, send_file, current_app, \
     Response
 from flask_login import login_required
@@ -55,7 +56,8 @@ def search(event_id):
                 if tickets.count():
                     return render_template('event/admin/partials/tickets.html', tickets=tickets)
                 else:
-                    resp = make_response('<h1 class="title is-size-4 has-text-centered has-text-danger">ไม่พบรายชื่อ/หมายเลขบัตร</h1>')
+                    resp = make_response(
+                        '<h1 class="title is-size-4 has-text-centered has-text-danger">ไม่พบรายชื่อ/หมายเลขบัตร</h1>')
                     return resp
         else:
             resp = make_response()
@@ -812,13 +814,31 @@ def checkin_ticket(ticket_id):
         db.session.add(ticket)
         db.session.commit()
         resp = make_response()
-        resp.headers['HX-Refresh'] = 'true'
-        flash(f'เช็คอินบัตรหมายเลข {ticket.ticket_number} เรียบร้อย เวลา {ticket.checkin_datetime.strftime("%d/%m/%Y %H:%M")}', 'success')
+        resp.headers['HX-Redirect'] = url_for('event.post_checkin', ticket_no=ticket.ticket_number)
+        flash(
+            f'เช็คอินบัตรหมายเลข {ticket.ticket_number} เรียบร้อย เวลา {ticket.checkin_datetime.strftime("%d/%m/%Y %H:%M")}',
+            'success')
         return resp
     else:
         return render_template('event/admin/modals/confirm_checkin_ticket_form.html',
                                form=form,
                                ticket_id=ticket_id)
+
+
+@event.route('/tickets/<ticket_no>/post-checkin')
+def post_checkin(ticket_no):
+    ticket = EventTicket.query.filter_by(ticket_number=ticket_no).first()
+    print(ticket.event_id)
+    buffer = io.BytesIO()
+    url = url_for("member.admin_edit_member_info_from_ticket_holder",
+                  editor="self", ticket_no=ticket_no, _external=True, _scheme="https")
+    img = qrcode.make(url)
+    img.save(buffer, format="PNG")
+    qrcode_data = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
+    return render_template('event/admin/post_checkin.html',
+                           qrcode_data=qrcode_data,
+                           event_id=ticket.event_id,
+                           ticket_no=ticket.ticket_number)
 
 
 @event.route('/tickets/<int:ticket_id>/checkin/cancel', methods=['POST'])
@@ -938,6 +958,7 @@ def admin_add_payment_record_onsite(participant_id):
     resp = make_response()
     resp.headers['HX-Refresh'] = 'true'
     return resp
+
 
 @event.route('/admin/payments/<int:payment_id>/note', methods=['GET', 'POST'])
 @login_required

@@ -23,9 +23,6 @@
         event.preventDefault()
         htmx.removeClass(htmx.find('#qrcode-modal'), 'is-active')
     })
-    window.document.getElementById("cancelButton").addEventListener("click", function () {
-        htmx.removeClass(htmx.find('#qrcode-modal'), 'is-active')
-    })
     window.addEventListener('closeModal', (evt) => {
         htmx.removeClass(htmx.find('#qrcode-modal'), 'is-active')
     })
