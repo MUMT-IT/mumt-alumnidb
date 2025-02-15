@@ -31,7 +31,19 @@
     <td>
       {% if participant.holding_ticket %}
       {% if participant.holding_ticket.checkin_datetime %}
-      {{participant.holding_ticket.checkin_datetime|localdatetime}}
+      <span>
+        {{participant.holding_ticket.checkin_datetime|localdatetime}}
+      </span>
+      <a hx-confirm="คุณต้องการยกเลิกการเช็คอินใช่หรือไม่"
+         hx-post="{{url_for('event.cancel_checkin_ticket', ticket_id=participant.holding_ticket.id)}}"
+         hx-indicator="this"
+         hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+         hx-swap="none"
+      >
+              <span class="icon">
+                <i class="fas fa-times has-text-danger"></i>
+              </span>
+      </a>
       {% else %}
       {% if participant.holding_ticket.payment_datetime %}
       <a class="button is-rounded is-success"
@@ -40,14 +52,16 @@
          hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
          hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
          hx-post="{{url_for('event.checkin_ticket', ticket_id=participant.holding_ticket.id)}}"
-      >เช็คอิน</a>
+      >
+        <span class="icon">
+          <i class="fas fa-user-clock"></i>
+        </span>
+        <span>เช็คอิน</span>
+      </a>
       {% else %}
-      <a class="button is-rounded is-danger"
-         hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
-         hx-swap="outerHTML"
-         hx-confirm="คุณแน่ใจว่าต้องการอนุมัติการชำระเงิน"
-         hx-indicator="this"
-         hx-post="{{url_for('event.approve_payment', ticket_id=participant.holding_ticket.id)}}">อนุมัติการชำระเงิน</a>
+      <a href="{{url_for('event.check_payment', participant_id=participant.id)}}" class="button is-rounded is-danger">
+        ชำระเงิน
+      </a>
       {% endif %}
       {% endif %}
       {% else %}

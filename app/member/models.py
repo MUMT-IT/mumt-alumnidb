@@ -14,4 +14,6 @@ class MemberInfo(db.Model):
     title = db.Column(db.String(), nullable=True, info={'label': 'คำนำหน้า'})
     firstname = db.Column(db.String(), nullable=False, info={'label': 'ชื่อจริง'})
     lastname = db.Column(db.String(), nullable=False, info={'label': 'นามสกุล'})
+    student_class = db.Column(db.String(), info={'label': 'รุ่น'})
+    note = db.Column(db.Text())
 

@@ -4,6 +4,7 @@
 <section class="section">
   <div class="columns">
     <div class="column">
+      {% include "messages.html" %}
       <h1 class="title">{{event.name}}</h1>
       <div class="field">
         <div class="control has-icons-right">
@@ -21,6 +22,15 @@
       </div>
       <div id="modal"></div>
       <div id="table"></div>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      <div class="buttons is-centered">
+        <a href="{{url_for('event.all_events')}}" class="button is-rounded">Back</a>
+        <a href="{{url_for('event.admin_register_participant', event_id=event.id)}}" class="button is-info is-rounded">ลงทะเบียน</a>
+        <a href="{{url_for('event.list_payments', event_id=event.id)}}" class="button is-danger is-rounded">ตรวจสอบการชำระเงิน</a>
+      </div>
     </div>
   </div>
 </section>

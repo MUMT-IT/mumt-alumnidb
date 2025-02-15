@@ -4,6 +4,7 @@
 <section class="section">
   <div class="columns">
     <div class="column">
+      {% include "messages.html" %}
       <h1 class="title">{{participant.event.name}}</h1>
       <h1 class="subtitle">รายการชำระเงิน</h1>
       <table class="table is-bordered is-fullwidth">
@@ -12,8 +13,9 @@
         <th>จำนวนเงิน</th>
         <th>เวลาส่งหลักฐาน</th>
         <th>Slip</th>
-        <th>ตรวจสอบแล้วเมื่อ</th>
+        <th>อนุมัติการชำระเงิน</th>
         <th>หมายเหตุ</th>
+        <th>วิธีการชำระ</th>
         </thead>
         <tbody>
         {% for payment in participant.payments %}
@@ -37,17 +39,39 @@
           <td>
             {% if payment.approve_datetime %}
             {{payment.approve_datetime|localdatetime}}
+            <a hx-confirm="คุณต้องการยกเลิกการอนุมัติการชำระเงินใช่หรือไม่"
+               hx-indicator="this"
+               hx-post="{{url_for('event.cancel_payment_approval', payment_id=payment.id)}}"
+               hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+               hx-swap="none"
+            >
+              <span class="icon">
+                <i class="fas fa-times has-text-danger"></i>
+              </span>
+            </a>
             {% else %}
-            <a hx-target="#form-modal"
-               hx-swap="innerHTML"
-               hx-get="{{url_for('event.approve_payment_batch', payment_id=payment.id)}}"
-               class="button is-success is-rounded"
-            >Approve</a>
-            <a hx-target="#form-modal"
-               hx-swap="innerHTML"
-               hx-get="{{url_for('event.admin_add_payment_note', payment_id=payment.id)}}"
-               class="button is-warning is-rounded"
-            >Note</a>
+            <div class="buttons has-addons">
+              <a hx-target="#form-modal"
+                 hx-swap="innerHTML"
+                 hx-get="{{url_for('event.approve_payment_batch', payment_id=payment.id)}}"
+                 class="button is-rounded is-info"
+              >
+                <span class="icon">
+                  <i class="fas fa-check"></i>
+                </span>
+                <span>ชำระล่วงหน้า</span>
+              </a>
+              <a hx-target="#form-modal"
+                 hx-swap="innerHTML"
+                 hx-get="{{url_for('event.approve_payment_batch', payment_id=payment.id, prepaid='false')}}"
+                 class="button is-rounded is-warning"
+              >
+                <span class="icon">
+                  <i class="fas fa-check"></i>
+                </span>
+                <span>ชำระหน้างาน</span>
+              </a>
+            </div>
             {% endif %}
           </td>
           <td>
@@ -60,6 +84,15 @@
               </span>
             </a>
           </td>
+          <td>
+            {% if payment.approve_datetime %}
+              {% if payment.walkin %}
+              หน้างาน
+              {% else %}
+              ล่วงหน้า
+              {% endif %}
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
         </tbody>
@@ -70,12 +103,12 @@
            hx-target="#payment-form"
            hx-swap="innerHTML"
            class="button is-rounded is-link">เพิ่มรายการชำระเงิน</a>
-        <a hx-post="{{url_for('event.admin_add_ticket', participant_id=participant.id)}}"
-           hx-target="#payment-form"
+        <a hx-post="{{url_for('event.admin_add_payment_record_onsite', participant_id=participant.id)}}"
+           hx-prompt="โปรดระบุจำนวนเงิน (บาท)"
            hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+           hx-target="#payment-form"
            hx-swap="innerHTML"
-           hx-confirm="ท่านแน่ใจว่าต้องการจองบัตรเพิ่ม"
-           class="button is-rounded is-light is-link">เพิ่มบัตร</a>
+           class="button is-rounded is-warning">เพิ่มรายการชำระเงินหน้างาน</a>
       </div>
       <div id="form-modal"></div>
       <h2 class="titlbe is-size-4">รายการบัตรที่จอง</h2>
@@ -85,6 +118,7 @@
         <th>ผู้ถือบัตร</th>
         <th>วันเวลาที่จอง</th>
         <th>ชำระเงิน</th>
+        <th>เช็คอิน</th>
         <th>หมายเหตุ</th>
         </thead>
         {% for ticket in participant.purchased_tickets %}
@@ -118,7 +152,51 @@
           </td>
           <td>{{ticket.create_datetime|localdatetime}}</td>
           <td>
+            {% if ticket.payment_datetime %}
             {{ticket.payment_datetime|localdatetime}}
+            <a hx-confirm="คุณต้องการยกเลิกการอนุมัติการชำระเงินใช่หรือไม่"
+               hx-indicator="this"
+               hx-post="{{url_for('event.cancel_ticket_payment_approval', ticket_id=ticket.id)}}"
+               hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+               hx-swap="none"
+            >
+              <span class="icon">
+                <i class="fas fa-times has-text-danger"></i>
+              </span>
+            </a>
+            {% endif %}
+          </td>
+          <td>
+            {% if ticket.checkin_datetime %}
+            <span>
+              {{ticket.checkin_datetime|localdatetime}}
+            </span>
+            <a hx-confirm="คุณต้องการยกเลิกการเช็คอินใช่หรือไม่"
+               hx-post="{{url_for('event.cancel_checkin_ticket', ticket_id=ticket.id)}}"
+               hx-indicator="this"
+               hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+               hx-swap="none"
+            >
+              <span class="icon">
+                <i class="fas fa-times has-text-danger"></i>
+              </span>
+            </a>
+            {% else %}
+            {% if ticket.payment_datetime and ticket.holder %}
+            <a class="button is-rounded is-success"
+               hx-indicator="this"
+               hx-swap="outerHTML"
+               hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
+               hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+               hx-post="{{url_for('event.checkin_ticket', ticket_id=ticket.id)}}"
+            >
+              <span class="icon">
+                <i class="fas fa-user-clock"></i>
+              </span>
+              <span>เช็คอิน</span>
+            </a>
+            {% endif %}
+            {% endif %}
           </td>
           <td>
             {{ticket.note or ''}}
@@ -131,9 +209,16 @@
         </tr>
         {% endfor %}
       </table>
+      <div class="buttons is-centered">
+        <a hx-post="{{url_for('event.admin_add_ticket', participant_id=participant.id)}}"
+           hx-target="#payment-form"
+           hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+           hx-swap="innerHTML"
+           hx-confirm="ท่านแน่ใจว่าต้องการจองบัตรเพิ่ม"
+           class="button is-rounded is-light is-link">เพิ่มบัตร</a>
+      </div>
       <div class="buttons">
-        <a href="{{url_for('event.list_participants', event_id=participant.event_id)}}" class="button is-rounded is-primary">Home</a>
-        <a href="{{url_for('event.list_payments', event_id=participant.event_id)}}" class="button is-rounded">Back</a>
+        <a href="{{url_for('event.search', event_id=participant.event_id)}}" class="button is-rounded is-primary">Home</a>
       </div>
     </div>
   </div>
