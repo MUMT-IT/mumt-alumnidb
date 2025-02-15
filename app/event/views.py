@@ -807,6 +807,7 @@ def checkin_ticket(ticket_id):
         db.session.commit()
         resp = make_response()
         resp.headers['HX-Refresh'] = 'true'
+        flash(f'เช็คอินบัตรหมายเลข {ticket.ticket_number} เรียบร้อย เวลา {ticket.checkin_datetime.strftime("%d/%m/%Y %H:%M")}', 'success')
         return resp
     else:
         return render_template('event/admin/modals/confirm_checkin_ticket_form.html',
@@ -823,6 +824,7 @@ def cancel_checkin_ticket(ticket_id):
     db.session.commit()
     resp = make_response()
     resp.headers['HX-Refresh'] = 'true'
+    flash(f'ยกเลิกเช็คอินบัตรหมายเลข {ticket.ticket_number} เรียบร้อย', 'success')
     return resp
 
 

@@ -4,6 +4,7 @@
 <section class="section">
   <div class="columns">
     <div class="column">
+      {% include "messages.html" %}
       <h1 class="title">{{participant.event.name}}</h1>
       <h1 class="subtitle">รายการชำระเงิน</h1>
       <table class="table is-bordered is-fullwidth">
@@ -218,7 +219,6 @@
       </div>
       <div class="buttons">
         <a href="{{url_for('event.search', event_id=participant.event_id)}}" class="button is-rounded is-primary">Home</a>
-        <a href="{{url_for('event.list_payments', event_id=participant.event_id)}}" class="button is-rounded">Back</a>
       </div>
     </div>
   </div>

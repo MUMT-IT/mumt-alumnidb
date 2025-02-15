@@ -31,7 +31,7 @@
     location.reload()
   })
   window.document.getElementById("cancelButton").addEventListener("click", function () {
-    htmx.removeClass(htmx.find('#participant-modal'), 'is-active')
+    location.reload()
   })
   window.addEventListener('closeModal', (evt) => {
     htmx.removeClass(htmx.find('#participant-modal'), 'is-active')

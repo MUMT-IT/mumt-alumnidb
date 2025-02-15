@@ -27,20 +27,17 @@
         {{ticket.checkin_datetime|localdatetime}}
         {% else %}
         {% if ticket.payment_datetime %}
-        <a class="button is-rounded is-success"
-           hx-indicator="this"
-           hx-swap="outerHTML"
-           hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
-           hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
-           hx-post="{{url_for('event.checkin_ticket', ticket_id=ticket.id)}}"
-        >เช็คอิน</a>
+          {% if ticket.holder %}
+          <a class="button is-rounded is-success"
+             hx-indicator="this"
+             hx-swap="outerHTML"
+             hx-confirm="คุณแน่ใจว่าต้องการเช็คอินรายการนี้"
+             hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+             hx-post="{{url_for('event.checkin_ticket', ticket_id=ticket.id)}}"
+          >เช็คอิน</a>
+          {% endif %}
         {% else %}
-        <a class="button is-rounded is-danger"
-           hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
-           hx-swap="outerHTML"
-           hx-confirm="คุณแน่ใจว่าต้องการอนุมัติการชำระเงิน"
-           hx-indicator="this"
-           hx-post="{{url_for('event.approve_payment', ticket_id=ticket.id)}}">อนุมัติการชำระเงิน</a>
+        <a class="button is-rounded is-danger" href="{{url_for('event.check_payment', participant_id=ticket.participant.id)}}">ชำระเงิน</a>
         {% endif %}
         {% endif %}
       </td>
