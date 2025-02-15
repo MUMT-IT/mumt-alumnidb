@@ -45,7 +45,6 @@ def create_approve_payment_form(participant: EventParticipant):
     class ApprovePaymentForm(ModelForm):
         tickets = QuerySelectMultipleField('Tickets', query_factory=lambda: participant.purchased_tickets.filter_by(payment_datetime=None),
                                            widget=ListWidget(prefix_label=False),
-                                           get_label='ticket_number',
                                            option_widget=CheckboxInput())
     return ApprovePaymentForm
 

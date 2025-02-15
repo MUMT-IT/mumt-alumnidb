@@ -76,6 +76,9 @@ class EventTicket(db.Model):
     checkin_datetime = db.Column(db.DateTime(timezone=True))
     note = db.Column(db.String(), info={'label': 'Note'})
 
+    def __str__(self):
+        return f'{self.ticket_number} {self.holder or ""}'
+
 
 class EventTicketPayment(db.Model):
     __tablename__ = 'event_ticket_payments'
