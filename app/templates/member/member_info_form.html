@@ -16,16 +16,17 @@
 {% block scripts %}
 {{super()}}
 <script>
-  var ticketNo = {{ticket_no|tojson|safe}}
   function closeLIFFWindow() {
     liff.closeWindow();
   }
   liff.init({
-    liffId: "2006693395-RZwO4OEj", // Use own liffId
+    // liffId: "2006693395-RZwO4OEj",
+    liffId: "2006884695-GwN8g0rz",
     withLoginOnExternalBrowser: true,
   }).then(function () {
     let profile = liff.getDecodedIDToken();
-    htmx.ajax('GET', '/member/members/line-id/' + profile.sub + '/check-info?ticket_no=' + ticketNo, {target: '#form-body', swap: 'innerHTML'})
+    alert("Got a profile!")
+    htmx.ajax('GET', '/member/members/line-id/' + profile.sub + '/check-info', {target: '#form-body', swap: 'innerHTML'})
   })
   document.addEventListener('closeLIFFWindow', function () {
     liff.closeWindow();

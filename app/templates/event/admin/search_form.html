@@ -23,5 +23,14 @@
       <div id="table"></div>
     </div>
   </div>
+  <div class="columns">
+    <div class="column">
+      <div class="buttons is-centered">
+        <a href="{{url_for('event.all_events')}}" class="button is-rounded">Back</a>
+        <a href="{{url_for('event.admin_register_participant', event_id=event.id)}}" class="button is-info is-rounded">ลงทะเบียน</a>
+        <a href="{{url_for('event.list_payments', event_id=event.id)}}" class="button is-danger is-rounded">ตรวจสอบการชำระเงิน</a>
+      </div>
+    </div>
+  </div>
 </section>
 {% endblock %}

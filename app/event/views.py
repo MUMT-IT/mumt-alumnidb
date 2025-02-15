@@ -25,7 +25,8 @@ from sqlalchemy_utils.types.arrow import arrow
 from app import app
 from app.member.models import MemberInfo
 from app.event import event_blueprint as event
-from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form, ParticipantEditForm, TicketForm
+from app.event.forms import ParticipantForm, TicketClaimForm, create_approve_payment_form, ParticipantEditForm, \
+    TicketForm
 from app.event.models import *
 
 configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_TOKEN'))
@@ -689,15 +690,19 @@ def list_participants(event_id):
 def approve_payment_batch(payment_id):
     payment = EventTicketPayment.query.get(payment_id)
     ApprovePaymentForm = create_approve_payment_form(payment.participant)
+    prepaid = request.args.get('prepaid', 'true')
     form = ApprovePaymentForm()
     if request.method == 'GET':
-        return render_template('event/admin/approve_payment_form.html', payment=payment, form=form)
+        return render_template('event/admin/approve_payment_form.html',
+                               payment=payment, form=form, prepaid=prepaid)
     if request.method == 'POST':
+        payment.approve_datetime = arrow.now('Asia/Bangkok').datetime
+        if prepaid == 'false':
+            payment.walkin = True
+        db.session.add(payment)
         for ticket in form.tickets.data:
             ticket.payment_datetime = payment.create_datetime
-            payment.approve_datetime = arrow.now('Asia/Bangkok').datetime
             db.session.add(ticket)
-            db.session.add(payment)
             db.session.commit()
             if not current_app.debug and ticket.participant.line_id:
                 with ApiClient(configuration) as api_client:
@@ -720,6 +725,31 @@ def approve_payment_batch(payment_id):
         resp = make_response()
         resp.headers['HX-Refresh'] = 'true'
         return resp
+
+
+@event.route('/payments/<int:payment_id>/cancel', methods=['POST'])
+@login_required
+def cancel_payment_approval(payment_id):
+    payment = EventTicketPayment.query.get(payment_id)
+    payment.approve_datetime = None
+    payment.walkin = None
+    db.session.add(payment)
+    db.session.commit()
+    resp = make_response()
+    resp.headers['HX-Refresh'] = 'true'
+    return resp
+
+
+@event.route('/tickets/<int:ticket_id>/payment-cancel', methods=['POST'])
+@login_required
+def cancel_ticket_payment_approval(ticket_id):
+    ticket = EventTicket.query.get(ticket_id)
+    ticket.payment_datetime = None
+    db.session.add(ticket)
+    db.session.commit()
+    resp = make_response()
+    resp.headers['HX-Refresh'] = 'true'
+    return resp
 
 
 @event.route('/tickets/<int:ticket_id>/payment-approve', methods=['POST'])
@@ -764,11 +794,36 @@ def approve_payment(ticket_id):
 @event.route('/tickets/<int:ticket_id>/checkin', methods=['POST'])
 @login_required
 def checkin_ticket(ticket_id):
+    confirm = request.args.get('confirm', 'no')
     ticket = EventTicket.query.get(ticket_id)
-    ticket.checkin_datetime = arrow.now('Asia/Bangkok').datetime
+    form = TicketForm(obj=ticket)
+    if confirm == 'yes':
+        if form.validate_on_submit():
+            form.populate_obj(ticket)
+        else:
+            print(form.errors)
+        ticket.checkin_datetime = arrow.now('Asia/Bangkok').datetime
+        db.session.add(ticket)
+        db.session.commit()
+        resp = make_response()
+        resp.headers['HX-Refresh'] = 'true'
+        return resp
+    else:
+        return render_template('event/admin/modals/confirm_checkin_ticket_form.html',
+                               form=form,
+                               ticket_id=ticket_id)
+
+
+@event.route('/tickets/<int:ticket_id>/checkin/cancel', methods=['POST'])
+@login_required
+def cancel_checkin_ticket(ticket_id):
+    ticket = EventTicket.query.get(ticket_id)
+    ticket.checkin_datetime = None
     db.session.add(ticket)
     db.session.commit()
-    return ticket.checkin_datetime.strftime('%d/%m/%Y %X')
+    resp = make_response()
+    resp.headers['HX-Refresh'] = 'true'
+    return resp
 
 
 @event.route('/events/<int:event_id>/payments')
@@ -860,6 +915,21 @@ def admin_add_payment_record(participant_id):
         resp.headers['HX-Redirect'] = url_for('event.check_payment', participant_id=participant_id)
         return resp
 
+
+@event.route('/admin/participants/<int:participant_id>/payment-onsite/new', methods=['POST'])
+@login_required
+def admin_add_payment_record_onsite(participant_id):
+    participant = EventParticipant.query.get(participant_id)
+    amount = request.headers.get('HX-Prompt')
+    payment = EventTicketPayment(participant_id=participant_id,
+                                 event_id=participant.event_id,
+                                 amount=float(amount))
+    payment.create_datetime = arrow.now('Asia/Bangkok').datetime
+    db.session.add(payment)
+    db.session.commit()
+    resp = make_response()
+    resp.headers['HX-Refresh'] = 'true'
+    return resp
 
 @event.route('/admin/payments/<int:payment_id>/note', methods=['GET', 'POST'])
 @login_required

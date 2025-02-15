@@ -20,6 +20,16 @@
             <input value="{{ticket.participant}}" readonly class="input">
           </div>
         </div>
+        <div class="buttons is-centered">
+          <a class="button is-success is-rounded"
+             hx-confirm="คุณต้องการเคลมบัตรให้ผู้จองใช่หรือไม่"
+             hx-indicator="this"
+             hx-swap="none"
+             hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+             hx-post="{{url_for('event.admin_add_ticket_holder', ticket_id=ticket.id, holder_id=ticket.participant_id)}}">
+            Claim This Ticket
+          </a>
+        </div>
       </div>
       <div class="field">
         <label class="label">ค้นหาผู้ลงทะเบียน</label>

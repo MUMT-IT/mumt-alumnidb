@@ -5,7 +5,7 @@
             <p class="modal-card-title">Approve Payment</p>
             <button type="button" id="cancelButton" class="delete" aria-label="close"></button>
         </header>
-        <form hx-post="{{ url_for('event.approve_payment_batch', payment_id=payment.id) }}"
+        <form hx-post="{{ url_for('event.approve_payment_batch', payment_id=payment.id, prepaid=prepaid) }}"
               hx-indicator="#submitBtn"
         >
             {{ form.hidden_tag() }}
