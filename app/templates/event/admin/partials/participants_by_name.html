@@ -14,7 +14,8 @@
     <td>{{participant.register_datetime|localdatetime}}</td>
     <td>
       {% if participant.holding_ticket.ticket_number %}
-      {{participant.holding_ticket.ticket_number}} {% if participant.holding_ticket.note %}<span class="tag is-warning">{{participant.holding_ticket.note}}</span> {% endif %}
+      <strong class="is-size-4">{{participant.holding_ticket.ticket_number}}</strong>
+      {% if participant.holding_ticket.note %}<span class="tag is-warning">{{participant.holding_ticket.note}}</span> {% endif %}
       {% else %}
       ไม่มีบัตร
       {% endif %}
