@@ -39,6 +39,7 @@ def list_upcoming_events():
 
 
 @event.route('/events/<int:event_id>/search')
+@login_required
 def search(event_id):
     event = Event.query.get(event_id)
     if request.headers.get('HX-Request') == 'true':
