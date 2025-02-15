@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "main/nav.html" %}
+<section class="section">
+  <div class="columns">
+    <div class="column">
+      {% include "messages.html" %}
+      <h1 class="title">อัพเดตข้อมูลศิษย์เก่า</h1>
+      <div class="box has-text-centered">
+        <p class="subtitle">แสกน QR Code ด้วย Line Application เพื่อแก้ไขข้อมูลส่วนตัว</p>
+        <figure class="image is-inline-block">
+          <img src="{{qrcode_data}}"/>
+        </figure>
+        <div class="buttons is-centered">
+          <a class="button" id="cancel-btn" href="{{url_for('event.search', event_id=event_id)}}">Home</a>
+          <a class="button is-success" href="{{url_for('member.admin_edit_member_info_from_ticket_holder', ticket_no=ticket_no, method='manual')}}">
+                <span class="icon">
+                    <i class="fas fa-pencil-alt"></i>
+                </span>
+            <span>Update</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

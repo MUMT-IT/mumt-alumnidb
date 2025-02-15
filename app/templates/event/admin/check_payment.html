@@ -120,6 +120,7 @@
         <th>ชำระเงิน</th>
         <th>เช็คอิน</th>
         <th>หมายเหตุ</th>
+        <th>ข้อมูลส่วนตัว</th>
         </thead>
         {% for ticket in participant.purchased_tickets %}
         <tr>
@@ -206,9 +207,23 @@
               </span>
             </a>
           </td>
+          <td>
+            {% if participant.holding_ticket %}
+            <a class="button is-rounded is-info"
+               hx-target="#modal"
+               hx-indicator="this"
+               hx-swap="innerHTML"
+               hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=ticket.ticket_number)}}"
+            >
+              <span class="icon"><i class="fas fa-user-edit"></i></span>
+              <span>อัพเดต</span>
+            </a>
+            {% endif %}
+          </td>
         </tr>
         {% endfor %}
       </table>
+      <div id="modal"></div>
       <div class="buttons is-centered">
         <a hx-post="{{url_for('event.admin_add_ticket', participant_id=participant.id)}}"
            hx-target="#payment-form"

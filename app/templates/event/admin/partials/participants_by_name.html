@@ -35,8 +35,7 @@
       <span>
         {{participant.holding_ticket.checkin_datetime|localdatetime}}
       </span>
-      <a hx-confirm="คุณต้องการยกเลิกการเช็คอินใช่หรือไม่"
-         hx-post="{{url_for('event.cancel_checkin_ticket', ticket_id=participant.holding_ticket.id)}}"
+      <a hx-post="{{url_for('event.cancel_checkin_ticket', ticket_id=participant.holding_ticket.id)}}"
          hx-indicator="this"
          hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
          hx-swap="none"
@@ -75,7 +74,10 @@
          hx-indicator="this"
          hx-swap="innerHTML"
          hx-get="{{url_for('member.create_qrcode_for_member_info_edit_from_ticket', ticket_no=participant.holding_ticket.ticket_number)}}"
-      >อัพเดต</a>
+      >
+        <span class="icon"><i class="fas fa-user-edit"></i></span>
+        <span>อัพเดต</span>
+      </a>
       {% endif %}
     </td>
   </tr>
