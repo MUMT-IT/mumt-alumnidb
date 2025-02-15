@@ -6,6 +6,15 @@
     <div class="column">
       {% include "messages.html" %}
       <h1 class="title">{{event.name}}</h1>
+      <div class="has-text-centered">
+        <figure class="image is-inline-block">
+          <img src="{{url_for('static', filename='img/hearts.png')}}">
+        </figure>
+      </div>
+      <p class="has-text-centered is-size-4">
+        ลงทะเบียน {{event.tickets.count()}} คน
+        เช็คอินแล้ว {{event.checked_tickets.count()}} คน ({{(event.checked_tickets.count()/event.tickets.count()*100)|round(2)}}%)
+      </p>
       <div class="field">
         <div class="control has-icons-right">
           <input name="query"

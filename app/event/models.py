@@ -25,6 +25,10 @@ class Event(db.Model):
     def time(self):
         return f'{self.start_datetime.strftime("%d/%m/%Y %H:%M")} - {self.end_datetime.strftime("%d/%m/%Y %H:%M")}'
 
+    @property
+    def checked_tickets(self):
+        return self.tickets.filter(EventTicket.checkin_datetime!=None)
+
     def __str__(self):
         return f'{self.name}: {self.detail}'
 

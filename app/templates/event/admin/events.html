@@ -14,7 +14,7 @@
         </thead>
         {% for event in events %}
         <tr>
-          <td><a href="{{url_for('event.list_participants', event_id=event.id)}}">{{event.name}}</a></td>
+          <td><a href="{{url_for('event.search', event_id=event.id)}}">{{event.name}}</a></td>
           <td>{{event.time}}</td>
           <td>{{event.location}}</td>
         </tr>
