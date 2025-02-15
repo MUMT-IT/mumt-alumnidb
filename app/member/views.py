@@ -37,8 +37,11 @@ def admin_edit_member_info_from_ticket_holder(ticket_no):
     editor = request.args.get('editor', 'admin')
     ticket = EventTicket.query.filter_by(ticket_number=ticket_no).first()
     member = None
-    if ticket and ticket.holder and ticket.holder.telephone:
-        member = MemberInfo.query.filter_by(telephone=ticket.holder.telephone).first()
+    if ticket and ticket.holder:
+        if ticket.holder.telephone:
+            member = MemberInfo.query.filter_by(telephone=ticket.holder.telephone).first()
+        else:
+            member = MemberInfo.query.filter_by(note=ticket.ticket_number).first()
     if request.method == 'GET':
         if member:
             form = MemberInfoForm(obj=member)
