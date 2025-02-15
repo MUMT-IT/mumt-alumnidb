@@ -3,7 +3,6 @@ import io
 import os
 
 import qrcode
-from aenum import Member
 from flask import render_template, make_response, url_for, request, flash, redirect
 from flask_login import login_required
 from linebot.v3.messaging import Configuration, ApiClient, MessagingApi, PushMessageRequest, TextMessage
@@ -16,13 +15,15 @@ from app.member.models import MemberInfo
 from app.event.models import EventTicket
 
 configuration = Configuration(access_token=os.environ.get('LINE_MESSAGE_ACCESS_TOKEN'))
+LIFF_URL = os.environ.get('LIFF_URL')
 
 
 @member.route('/info/qrcode/tickets/<ticket_no>')
 @login_required
 def create_qrcode_for_member_info_edit_from_ticket(ticket_no):
     buffer = io.BytesIO()
-    url = f'https://liff.line.me/2006693395-RZwO4OEj/{url_for("member.edit_member_info", ticket_no=ticket_no)}'
+    url = url_for("member.admin_edit_member_info_from_ticket_holder",
+                  ticket_no=ticket_no, _external=True, _scheme="https")
     img = qrcode.make(url)
     img.save(buffer, format="PNG")
     qrcode_data = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode()}"
@@ -33,14 +34,11 @@ def create_qrcode_for_member_info_edit_from_ticket(ticket_no):
 @member.route('/admin/member/info/edit/tickets/<ticket_no>', methods=['GET', 'POST'])
 def admin_edit_member_info_from_ticket_holder(ticket_no):
     form = MemberInfoForm()
+    editor = request.args.get('editor', 'admin')
     ticket = EventTicket.query.filter_by(ticket_number=ticket_no).first()
     member = None
-    line_id = None
     if ticket and ticket.holder:
-        member = MemberInfo.query.filter(or_(MemberInfo.line_id==ticket.holder.line_id,
-                                             MemberInfo.telephone==ticket.holder.telephone)).first()
-        if member and member.line_id:
-            line_id = member.line_id
+        member = MemberInfo.query.filter_by(telephone=ticket.holder.telephone).first()
     if request.method == 'GET':
         if member:
             form = MemberInfoForm(obj=member)
@@ -50,17 +48,21 @@ def admin_edit_member_info_from_ticket_holder(ticket_no):
                                   telephone=ticket.holder.telephone,
                                   title=ticket.holder.title)
         return render_template('member/member_info_manual_edit_form.html',
-                               form=form, event_id=ticket.event_id, line_id=line_id)
+                               form=form, event_id=ticket.event_id)
 
     if request.method == 'POST':
         if form.validate_on_submit():
             if not member:
                 member = MemberInfo()
             form.populate_obj(member)
+            member.note = ticket_no
             db.session.add(member)
             db.session.commit()
-            flash('Member info has been updated.', 'success')
-            return redirect(url_for('event.list_participants', event_id=ticket.event_id))
+            if editor == 'admin':
+                flash('Member info has been updated.', 'success')
+                return redirect(url_for('event.search', event_id=ticket.event_id))
+            else:
+                return '<h1>บันทึกข้อมูลเรียบร้อยแล้ว ท่านสามารถปิดหน้าเว็บนี้ได้ทันที</h1>'
         else:
             print(form.errors)
             return render_template('member/member_info_manual_edit_form.html',

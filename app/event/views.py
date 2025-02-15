@@ -19,7 +19,6 @@ from linebot.v3.messaging import ApiClient, MessagingApi, PushMessageRequest, Te
 from qrcode.main import QRCode
 from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy import or_
-from sqlalchemy.event import Events
 from sqlalchemy_utils.types.arrow import arrow
 
 from app import app
