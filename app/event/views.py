@@ -42,17 +42,24 @@ def search(event_id):
     event = Event.query.get(event_id)
     if request.headers.get('HX-Request') == 'true':
         query = request.args.get('query')
-        filtered_participants = EventParticipant.query.filter(or_(EventParticipant.firstname.ilike(f'%{query}%'),
-                                                                  EventParticipant.lastname.ilike(f'%{query}%'),
-                                                                  ))
-        if filtered_participants.count():
-            return render_template('event/admin/partials/participants_by_name.html',
-                                   filtered_participants=filtered_participants)
+        if query:
+            filtered_participants = EventParticipant.query.filter(or_(EventParticipant.firstname.ilike(f'%{query}%'),
+                                                                      EventParticipant.lastname.ilike(f'%{query}%'),
+                                                                      ))
+            if filtered_participants.count():
+                return render_template('event/admin/partials/participants_by_name.html',
+                                       filtered_participants=filtered_participants)
+            else:
+                tickets = EventTicket.query.filter(or_(EventTicket.ticket_number.ilike(f'%{query}%'),
+                                                       EventTicket.note.ilike(f'%{query}')))
+                if tickets.count():
+                    return render_template('event/admin/partials/tickets.html', tickets=tickets)
+                else:
+                    resp = make_response('<h1 class="title is-size-4 has-text-centered has-text-danger">ไม่พบรายชื่อ/หมายเลขบัตร</h1>')
+                    return resp
         else:
-            tickets = EventTicket.query.filter(or_(EventTicket.ticket_number.ilike(f'%{query}%'),
-                                                   EventTicket.note.ilike(f'%{query}')))
-            if tickets.count():
-                return render_template('event/admin/partials/tickets.html', tickets=tickets)
+            resp = make_response()
+            return resp
     return render_template('event/admin/search_form.html', event=event)
 
 

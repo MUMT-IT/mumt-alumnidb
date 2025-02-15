@@ -11,7 +11,10 @@
     {% for ticket in tickets %}
     <tr>
       <td>
-        {{ticket.ticket_number}} {% if ticket.note %}<span class="tag is-warning">{{ticket.note}}</span> {% endif %}
+        <strong class="is-size-4">
+          {{ticket.ticket_number}}
+        </strong>
+        {% if ticket.note %}<span class="tag is-warning">{{ticket.note}}</span> {% endif %}
       </td>
       <td>{{ticket.holder}}</td>
       <td><a href="{{url_for('event.check_payment', participant_id=ticket.participant.id)}}">{{ticket.participant}}</a></td>
